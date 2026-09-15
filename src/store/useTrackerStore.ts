@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
+import { api } from '@/lib/api'
 import type { LoggedFoodEntry } from '@/data/foods'
 
 export interface WeightEntry {
@@ -25,8 +25,16 @@ export interface PersonalRecord {
   dateISO: string
 }
 
-function todayKey(): string {
+export function todayKey(): string {
   return new Date().toISOString().slice(0, 10)
+}
+
+interface HydratePayload {
+  weightEntries: WeightEntry[]
+  foodLog: LoggedFoodEntry[]
+  waterByDate: Record<string, number>
+  completedWorkouts: CompletedWorkout[]
+  personalRecords: PersonalRecord[]
 }
 
 interface TrackerState {
@@ -36,82 +44,77 @@ interface TrackerState {
   completedWorkouts: CompletedWorkout[]
   personalRecords: PersonalRecord[]
 
-  addWeightEntry: (kg: number) => void
-  logFood: (entry: Omit<LoggedFoodEntry, 'id' | 'loggedAt'>) => void
-  removeFoodEntry: (id: string) => void
-  addWater: (ml: number) => void
-  completeWorkout: (workoutId: string, durationMin: number, calories: number) => void
-  addPersonalRecord: (record: Omit<PersonalRecord, 'id' | 'dateISO'>) => void
+  hydrate: (data: HydratePayload) => void
+  reset: () => void
+
+  addWeightEntry: (kg: number) => Promise<void>
+  logFood: (entry: Omit<LoggedFoodEntry, 'id' | 'loggedAt'>) => Promise<void>
+  removeFoodEntry: (id: string) => Promise<void>
+  addWater: (ml: number) => Promise<void>
+  completeWorkout: (workoutId: string, durationMin: number, calories: number) => Promise<void>
+  addPersonalRecord: (record: Omit<PersonalRecord, 'id' | 'dateISO'>) => Promise<void>
 
   currentStreak: () => number
 }
 
-export const useTrackerStore = create<TrackerState>()(
-  persist(
-    (set, get) => ({
-      weightEntries: [],
-      foodLog: [],
-      waterByDate: {},
-      completedWorkouts: [],
-      personalRecords: [],
+const empty: HydratePayload = {
+  weightEntries: [],
+  foodLog: [],
+  waterByDate: {},
+  completedWorkouts: [],
+  personalRecords: [],
+}
 
-      addWeightEntry: (kg) =>
-        set((state) => ({
-          weightEntries: [
-            ...state.weightEntries,
-            { id: crypto.randomUUID(), dateISO: new Date().toISOString(), kg },
-          ],
-        })),
+export const useTrackerStore = create<TrackerState>()((set, get) => ({
+  ...empty,
 
-      logFood: (entry) =>
-        set((state) => ({
-          foodLog: [
-            ...state.foodLog,
-            { ...entry, id: crypto.randomUUID(), loggedAt: new Date().toISOString() },
-          ],
-        })),
+  hydrate: (data) => set(data),
+  reset: () => set(empty),
 
-      removeFoodEntry: (id) =>
-        set((state) => ({ foodLog: state.foodLog.filter((entry) => entry.id !== id) })),
+  addWeightEntry: async (kg) => {
+    const { entry } = await api.post<{ entry: WeightEntry }>('/weight', { kg })
+    set((state) => ({ weightEntries: [...state.weightEntries, entry] }))
+  },
 
-      addWater: (ml) =>
-        set((state) => {
-          const key = todayKey()
-          const current = state.waterByDate[key] ?? 0
-          return { waterByDate: { ...state.waterByDate, [key]: Math.max(0, current + ml) } }
-        }),
+  logFood: async (entry) => {
+    const { entry: created } = await api.post<{ entry: LoggedFoodEntry }>('/food-log', entry)
+    set((state) => ({ foodLog: [...state.foodLog, created] }))
+  },
 
-      completeWorkout: (workoutId, durationMin, calories) =>
-        set((state) => ({
-          completedWorkouts: [
-            ...state.completedWorkouts,
-            { id: crypto.randomUUID(), workoutId, dateISO: new Date().toISOString(), durationMin, calories },
-          ],
-        })),
+  removeFoodEntry: async (id) => {
+    await api.delete(`/food-log?id=${encodeURIComponent(id)}`)
+    set((state) => ({ foodLog: state.foodLog.filter((entry) => entry.id !== id) }))
+  },
 
-      addPersonalRecord: (record) =>
-        set((state) => ({
-          personalRecords: [
-            { ...record, id: crypto.randomUUID(), dateISO: new Date().toISOString() },
-            ...state.personalRecords,
-          ],
-        })),
+  addWater: async (ml) => {
+    const { totalMlToday } = await api.post<{ totalMlToday: number }>('/water', { ml })
+    set((state) => ({ waterByDate: { ...state.waterByDate, [todayKey()]: totalMlToday } }))
+  },
 
-      currentStreak: () => {
-        const dates = new Set(get().completedWorkouts.map((w) => w.dateISO.slice(0, 10)))
-        let streak = 0
-        const cursor = new Date()
-        for (;;) {
-          const key = cursor.toISOString().slice(0, 10)
-          if (!dates.has(key)) break
-          streak += 1
-          cursor.setDate(cursor.getDate() - 1)
-        }
-        return streak
-      },
-    }),
-    { name: 'fit-track-tracker-store' },
-  ),
-)
+  completeWorkout: async (workoutId, durationMin, calories) => {
+    const { entry } = await api.post<{ entry: CompletedWorkout }>('/workouts/complete', {
+      workoutId,
+      durationMin,
+      calories,
+    })
+    set((state) => ({ completedWorkouts: [...state.completedWorkouts, entry] }))
+  },
 
-export { todayKey }
+  addPersonalRecord: async (record) => {
+    const { record: created } = await api.post<{ record: PersonalRecord }>('/personal-records', record)
+    set((state) => ({ personalRecords: [created, ...state.personalRecords] }))
+  },
+
+  currentStreak: () => {
+    const dates = new Set(get().completedWorkouts.map((w) => w.dateISO.slice(0, 10)))
+    let streak = 0
+    const cursor = new Date()
+    for (;;) {
+      const key = cursor.toISOString().slice(0, 10)
+      if (!dates.has(key)) break
+      streak += 1
+      cursor.setDate(cursor.getDate() - 1)
+    }
+    return streak
+  },
+}))

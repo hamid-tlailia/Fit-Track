@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import type { Gender, Goal } from '@/store/useAppStore'
 import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
 interface DraftState {
   gender?: Gender
@@ -17,25 +18,34 @@ export default function Register() {
   const navigate = useNavigate()
   const location = useLocation()
   const draft = (location.state as DraftState | null) ?? {}
-  const completeOnboarding = useAppStore((state) => state.completeOnboarding)
+  const register = useAuthStore((state) => state.register)
+  const setVoiceGender = useAppStore((state) => state.setVoiceGender)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    completeOnboarding({
-      name: name.trim() || 'Athlete',
+    setError(null)
+    setSubmitting(true)
+    const gender = draft.gender ?? 'male'
+    const result = await register({
+      name: name.trim(),
       email: email.trim(),
-      gender: draft.gender ?? 'male',
+      password,
+      gender,
       goal: draft.goal ?? 'stayFit',
-      weightKg: 70,
-      heightCm: 170,
-      age: 25,
-      activityLevel: 'moderate',
     })
-    navigate('/')
+    setSubmitting(false)
+    if (result.ok) {
+      setVoiceGender(gender)
+      navigate('/')
+    } else {
+      setError(t(`auth.errors.${result.error}`, { defaultValue: t('auth.errors.unknown') }))
+    }
   }
 
   return (
@@ -47,7 +57,9 @@ export default function Register() {
         <Field label={t('auth.email')} type="email" value={email} onChange={setEmail} required />
         <Field label={t('auth.password')} type="password" value={password} onChange={setPassword} required minLength={6} />
 
-        <Button type="submit" className="w-full mt-2">
+        {error && <p className="text-sm text-red-400">{error}</p>}
+
+        <Button type="submit" className="w-full mt-2" disabled={submitting}>
           {t('auth.signUp')}
         </Button>
 

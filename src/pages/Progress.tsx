@@ -46,13 +46,13 @@ export default function Progress() {
   function handleAddWeight() {
     const kg = Number(weightInput)
     if (!kg || kg <= 0) return
-    addWeightEntry(kg)
+    void addWeightEntry(kg)
     setWeightInput('')
   }
 
   function handleAddPR() {
     if (!prName.trim() || !prValue.trim()) return
-    addPersonalRecord({ exerciseNameEn: prName, exerciseNameAr: prName, value: prValue })
+    void addPersonalRecord({ exerciseNameEn: prName, exerciseNameAr: prName, value: prValue })
     setPrName('')
     setPrValue('')
   }

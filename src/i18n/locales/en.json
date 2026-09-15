@@ -40,7 +40,15 @@
     "haveAccount": "Already have an account?",
     "signUp": "Sign up",
     "signIn": "Sign in",
-    "continueAsGuest": "Continue as guest"
+    "continueAsGuest": "Continue as guest",
+    "errors": {
+      "invalid_name": "Please enter your name.",
+      "invalid_email": "Please enter a valid email address.",
+      "weak_password": "Password must be at least 6 characters.",
+      "email_taken": "An account with this email already exists.",
+      "invalid_credentials": "Invalid email or password.",
+      "unknown": "Something went wrong. Please try again."
+    }
   },
   "dashboard": {
     "greeting": "Hey {{name}} 👋",

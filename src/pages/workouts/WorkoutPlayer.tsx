@@ -104,7 +104,7 @@ export default function WorkoutPlayer() {
   function finishWorkout() {
     if (!workout) return
     stopSpeaking()
-    completeWorkout(workout.id, workout.durationMin, workout.calories)
+    void completeWorkout(workout.id, workout.durationMin, workout.calories)
     setFinished(true)
   }
 

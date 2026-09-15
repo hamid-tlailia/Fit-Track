@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 
 import type { WorkoutCategory } from '@/data/workouts'
 import { workouts } from '@/data/workouts'
-import { isPremium, useAppStore } from '@/store/useAppStore'
+import { isPremium, useAuthStore } from '@/store/useAuthStore'
 
 const categories: (WorkoutCategory | 'all')[] = ['all', 'strength', 'hiit', 'cardio', 'mobility']
 
@@ -13,7 +13,7 @@ export default function WorkoutsList() {
   const { t, i18n } = useTranslation()
   const isAr = i18n.language === 'ar'
   const [filter, setFilter] = useState<(typeof categories)[number]>('all')
-  const tier = useAppStore((state) => state.subscription.tier)
+  const tier = useAuthStore((state) => state.user?.subscriptionTier ?? 'free')
 
   const filtered = filter === 'all' ? workouts : workouts.filter((w) => w.category === filter)
 

@@ -7,11 +7,12 @@ import { foods } from '@/data/foods'
 import { workouts } from '@/data/workouts'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
 import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 import { todayKey, useTrackerStore } from '@/store/useTrackerStore'
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation()
-  const user = useAppStore((state) => state.user)
+  const user = useAuthStore((state) => state.user)
   const theme = useAppStore((state) => state.theme)
   const foodLog = useTrackerStore((state) => state.foodLog)
   const waterByDate = useTrackerStore((state) => state.waterByDate)
@@ -83,7 +84,7 @@ export default function Dashboard() {
           <Salad size={17} /> {t('dashboard.logFood')}
         </Link>
         <button
-          onClick={() => addWater(250)}
+          onClick={() => void addWater(250)}
           className="rounded-2xl border border-surface-2 bg-surface p-4 font-semibold hover:border-brand-500 transition flex items-center gap-2 text-start"
         >
           <Plus size={17} /> {t('dashboard.addWater')}

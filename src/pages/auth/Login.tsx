@@ -1,46 +1,32 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
-import type { Gender, Goal } from '@/store/useAppStore'
-import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
-interface DraftState {
-  gender?: Gender
-  goal?: Goal
-}
-
-/**
- * There is no backend yet, so "login" simulates re-entering a locally stored
- * profile. This keeps the flow honest to a frontend-first build order while
- * the screen and validation UX are already wired for a real API later.
- */
 export default function Login() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const location = useLocation()
-  const draft = (location.state as DraftState | null) ?? {}
-  const user = useAppStore((state) => state.user)
-  const completeOnboarding = useAppStore((state) => state.completeOnboarding)
+  const login = useAuthStore((state) => state.login)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    completeOnboarding({
-      name: user?.name ?? (email.split('@')[0] || 'Athlete'),
-      email: email.trim(),
-      gender: user?.gender ?? draft.gender ?? 'male',
-      goal: user?.goal ?? draft.goal ?? 'stayFit',
-      weightKg: user?.weightKg ?? 70,
-      heightCm: user?.heightCm ?? 170,
-      age: user?.age ?? 25,
-      activityLevel: user?.activityLevel ?? 'moderate',
-    })
-    navigate('/')
+    setError(null)
+    setSubmitting(true)
+    const result = await login({ email: email.trim(), password })
+    setSubmitting(false)
+    if (result.ok) {
+      navigate('/')
+    } else {
+      setError(t(`auth.errors.${result.error}`, { defaultValue: t('auth.errors.unknown') }))
+    }
   }
 
   return (
@@ -71,13 +57,15 @@ export default function Login() {
           />
         </label>
 
-        <Button type="submit" className="w-full mt-2">
+        {error && <p className="text-sm text-red-400">{error}</p>}
+
+        <Button type="submit" className="w-full mt-2" disabled={submitting}>
           {t('auth.signIn')}
         </Button>
 
         <p className="text-center text-sm text-ink-soft">
           {t('auth.noAccount')}{' '}
-          <Link to="/auth/register" state={draft} className="text-brand-400 font-semibold">
+          <Link to="/auth/register" className="text-brand-400 font-semibold">
             {t('auth.signUp')}
           </Link>
         </p>

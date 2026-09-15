@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
@@ -14,53 +15,69 @@ import Subscription from '@/pages/Subscription'
 import WorkoutDetail from '@/pages/workouts/WorkoutDetail'
 import WorkoutPlayer from '@/pages/workouts/WorkoutPlayer'
 import WorkoutsList from '@/pages/workouts/WorkoutsList'
-import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
-function RequireOnboarding({ children }: { children: ReactNode }) {
-  const onboardingComplete = useAppStore((state) => state.onboardingComplete)
-  if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+function SplashScreen() {
+  return (
+    <div className="min-h-dvh grid place-items-center bg-bg">
+      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent animate-pulse" />
+    </div>
+  )
+}
+
+function RequireAuth({ children }: { children: ReactNode }) {
+  const status = useAuthStore((state) => state.status)
+  if (status === 'loading') return <SplashScreen />
+  if (status === 'guest') return <Navigate to="/onboarding" replace />
   return <>{children}</>
 }
 
-function RedirectIfOnboarded({ children }: { children: ReactNode }) {
-  const onboardingComplete = useAppStore((state) => state.onboardingComplete)
-  if (onboardingComplete) return <Navigate to="/" replace />
+function RedirectIfAuthed({ children }: { children: ReactNode }) {
+  const status = useAuthStore((state) => state.status)
+  if (status === 'loading') return <SplashScreen />
+  if (status === 'authenticated') return <Navigate to="/" replace />
   return <>{children}</>
 }
 
 export default function App() {
+  const bootstrap = useAuthStore((state) => state.bootstrap)
+
+  useEffect(() => {
+    void bootstrap()
+  }, [bootstrap])
+
   return (
     <Routes>
       <Route
         path="/onboarding"
         element={
-          <RedirectIfOnboarded>
+          <RedirectIfAuthed>
             <Onboarding />
-          </RedirectIfOnboarded>
+          </RedirectIfAuthed>
         }
       />
       <Route
         path="/auth/login"
         element={
-          <RedirectIfOnboarded>
+          <RedirectIfAuthed>
             <Login />
-          </RedirectIfOnboarded>
+          </RedirectIfAuthed>
         }
       />
       <Route
         path="/auth/register"
         element={
-          <RedirectIfOnboarded>
+          <RedirectIfAuthed>
             <Register />
-          </RedirectIfOnboarded>
+          </RedirectIfAuthed>
         }
       />
 
       <Route
         element={
-          <RequireOnboarding>
+          <RequireAuth>
             <AppLayout />
-          </RequireOnboarding>
+          </RequireAuth>
         }
       >
         <Route index element={<Dashboard />} />

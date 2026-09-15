@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "cookie": "^2.0.1",
     "i18next": "^26.4.2",
     "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^1.46.0",
@@ -23,9 +26,11 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "@vercel/node": "^13.0.1",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
     "tailwindcss": "^4.3.3",

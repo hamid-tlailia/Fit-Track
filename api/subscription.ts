@@ -1,0 +1,28 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node'
+
+import { getUserFromRequest } from './_lib/auth'
+import { ensureSchema, sql } from './_lib/db'
+import type { UserRow } from './_lib/types'
+import { serializeUser } from './_lib/types'
+
+const VALID_TIERS = new Set(['free', 'premium', 'pro'])
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  await ensureSchema()
+  const user = await getUserFromRequest(req)
+  if (!user) return res.status(401).json({ error: 'Not authenticated' })
+
+  const { tier } = req.body ?? {}
+  if (typeof tier !== 'string' || !VALID_TIERS.has(tier)) {
+    return res.status(400).json({ error: 'Invalid subscription tier' })
+  }
+
+  // Demo-mode upgrade: no payment is processed. A real integration would
+  // verify a payment provider webhook/checkout session before writing this.
+  const rows = await sql`
+    UPDATE users SET subscription_tier = ${tier} WHERE id = ${user.id} RETURNING *
+  `
+  return res.status(200).json({ user: serializeUser(rows[0] as UserRow) })
+}

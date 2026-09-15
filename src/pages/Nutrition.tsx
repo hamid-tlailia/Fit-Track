@@ -9,7 +9,7 @@ import { Select } from '@/components/ui/Select'
 import type { FoodCategory, LoggedFoodEntry } from '@/data/foods'
 import { foods } from '@/data/foods'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
-import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 import { todayKey, useTrackerStore } from '@/store/useTrackerStore'
 
 const meals: LoggedFoodEntry['meal'][] = ['breakfast', 'lunch', 'dinner', 'snack']
@@ -17,7 +17,7 @@ const meals: LoggedFoodEntry['meal'][] = ['breakfast', 'lunch', 'dinner', 'snack
 export default function Nutrition() {
   const { t, i18n } = useTranslation()
   const isAr = i18n.language === 'ar'
-  const user = useAppStore((state) => state.user)
+  const user = useAuthStore((state) => state.user)
 
   const foodLog = useTrackerStore((state) => state.foodLog)
   const logFood = useTrackerStore((state) => state.logFood)
@@ -69,7 +69,7 @@ export default function Nutrition() {
   )
 
   function handleAddFood() {
-    logFood({ foodId, grams, meal })
+    void logFood({ foodId, grams, meal })
   }
 
   return (
@@ -85,13 +85,13 @@ export default function Nutrition() {
           <p className="text-xl font-extrabold">{(waterMl / 1000).toFixed(2)}L</p>
           <div className="flex gap-2">
             <button
-              onClick={() => addWater(-250)}
+              onClick={() => void addWater(-250)}
               className="grid h-8 w-8 place-items-center rounded-full bg-surface-2"
             >
               <Minus size={14} />
             </button>
             <button
-              onClick={() => addWater(250)}
+              onClick={() => void addWater(250)}
               className="grid h-8 w-8 place-items-center rounded-full bg-surface-2"
             >
               <Plus size={14} />
@@ -146,7 +146,7 @@ export default function Nutrition() {
                     {entry.grams}g · {t(`nutrition.meals.${entry.meal}`)} · {Math.round((food.kcalPer100g * entry.grams) / 100)} {t('common.kcal')}
                   </p>
                 </div>
-                <button onClick={() => removeFoodEntry(entry.id)} className="text-ink-soft hover:text-red-400">
+                <button onClick={() => void removeFoodEntry(entry.id)} className="text-ink-soft hover:text-red-400">
                   <Trash2 size={17} />
                 </button>
               </li>

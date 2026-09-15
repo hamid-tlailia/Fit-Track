@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Card } from '@/components/ui/Card'
 import type { SubscriptionTier } from '@/store/useAppStore'
-import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const planOrder: SubscriptionTier[] = ['free', 'premium', 'pro']
 
@@ -15,8 +15,8 @@ const planIcon: Record<SubscriptionTier, typeof Sparkles> = {
 
 export default function Subscription() {
   const { t } = useTranslation()
-  const tier = useAppStore((state) => state.subscription.tier)
-  const setSubscription = useAppStore((state) => state.setSubscription)
+  const tier = useAuthStore((state) => state.user?.subscriptionTier ?? 'free')
+  const setSubscriptionTier = useAuthStore((state) => state.setSubscriptionTier)
 
   return (
     <div className="max-w-4xl mx-auto px-5 pt-8 pb-10 md:pt-10">
@@ -63,7 +63,7 @@ export default function Subscription() {
               </ul>
 
               <button
-                onClick={() => setSubscription(plan)}
+                onClick={() => setSubscriptionTier(plan)}
                 disabled={isCurrent}
                 className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                   isCurrent

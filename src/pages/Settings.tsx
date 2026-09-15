@@ -8,6 +8,7 @@ import { speak } from '@/lib/voice'
 import { applyTheme, themes } from '@/lib/themes'
 import type { Units, VoiceGender } from '@/store/useAppStore'
 import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const languageLabels: Record<SupportedLanguage, string> = { en: 'English', ar: 'العربية' }
 
@@ -23,7 +24,7 @@ export default function Settings() {
   const setVoiceEnabled = useAppStore((state) => state.setVoiceEnabled)
   const units = useAppStore((state) => state.units)
   const setUnits = useAppStore((state) => state.setUnits)
-  const logout = useAppStore((state) => state.logout)
+  const logout = useAuthStore((state) => state.logout)
 
   function handleTestVoice() {
     speak(t('settings.testVoiceSample'), {
@@ -32,8 +33,8 @@ export default function Settings() {
     })
   }
 
-  function handleLogout() {
-    logout()
+  async function handleLogout() {
+    await logout()
     navigate('/onboarding')
   }
 

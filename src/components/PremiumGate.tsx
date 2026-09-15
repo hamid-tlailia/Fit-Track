@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { isPremium, isPro, useAppStore } from '@/store/useAppStore'
+import { isPremium, isPro, useAuthStore } from '@/store/useAuthStore'
 
 interface PremiumGateProps {
   children: ReactNode
@@ -19,7 +19,7 @@ export function PremiumGate({
   descriptionKey,
 }: PremiumGateProps) {
   const { t } = useTranslation()
-  const tier = useAppStore((state) => state.subscription.tier)
+  const tier = useAuthStore((state) => state.user?.subscriptionTier ?? 'free')
   const unlocked = requires === 'pro' ? isPro(tier) : isPremium(tier)
 
   if (unlocked) return <>{children}</>

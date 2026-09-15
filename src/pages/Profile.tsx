@@ -6,15 +6,15 @@ import { Card } from '@/components/ui/Card'
 import { Select } from '@/components/ui/Select'
 import { activityLevels } from '@/lib/calculations'
 import type { ActivityLevel, Goal } from '@/store/useAppStore'
-import { useAppStore } from '@/store/useAppStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const goals: Goal[] = ['loseWeight', 'buildMuscle', 'stayFit', 'endurance']
 
 export default function Profile() {
   const { t } = useTranslation()
-  const user = useAppStore((state) => state.user)
-  const updateProfile = useAppStore((state) => state.updateProfile)
-  const tier = useAppStore((state) => state.subscription.tier)
+  const user = useAuthStore((state) => state.user)
+  const updateProfile = useAuthStore((state) => state.updateProfile)
+  const tier = user?.subscriptionTier ?? 'free'
   const [saved, setSaved] = useState(false)
 
   const [form, setForm] = useState(() => ({
@@ -27,8 +27,8 @@ export default function Profile() {
 
   if (!user) return null
 
-  function handleSave() {
-    updateProfile(form)
+  async function handleSave() {
+    await updateProfile(form)
     setSaved(true)
     setTimeout(() => setSaved(false), 1800)
   }
