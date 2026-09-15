@@ -4,8 +4,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import bcrypt from 'bcryptjs'
 import { parseCookie, stringifySetCookie } from 'cookie'
 
-import { ensureSchema, sql } from './db'
-import type { UserRow } from './types'
+import { ensureSchema, sql } from './db.js'
+import type { UserRow } from './types.js'
 
 const COOKIE_NAME = 'fitforge_session'
 const SESSION_DAYS = 30

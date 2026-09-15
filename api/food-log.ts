@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-import { getUserFromRequest } from './_lib/auth'
-import { ensureSchema, sql } from './_lib/db'
-import type { FoodLogRow } from './_lib/types'
+import { getUserFromRequest } from './_lib/auth.js'
+import { ensureSchema, sql } from './_lib/db.js'
+import type { FoodLogRow } from './_lib/types.js'
 
 const VALID_MEALS = new Set(['breakfast', 'lunch', 'dinner', 'snack'])
 

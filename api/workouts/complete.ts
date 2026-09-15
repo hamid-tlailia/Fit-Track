@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-import { getUserFromRequest } from '../_lib/auth'
-import { ensureSchema, sql } from '../_lib/db'
-import type { CompletedWorkoutRow } from '../_lib/types'
+import { getUserFromRequest } from '../_lib/auth.js'
+import { ensureSchema, sql } from '../_lib/db.js'
+import type { CompletedWorkoutRow } from '../_lib/types.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })

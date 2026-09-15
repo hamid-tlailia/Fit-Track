@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-import { getUserFromRequest } from './_lib/auth'
-import { ensureSchema, sql } from './_lib/db'
-import type { UserRow } from './_lib/types'
-import { serializeUser } from './_lib/types'
+import { getUserFromRequest } from './_lib/auth.js'
+import { ensureSchema, sql } from './_lib/db.js'
+import type { UserRow } from './_lib/types.js'
+import { serializeUser } from './_lib/types.js'
 
 const VALID_TIERS = new Set(['free', 'premium', 'pro'])
 
