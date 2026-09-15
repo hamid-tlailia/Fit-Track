@@ -53,6 +53,39 @@ export function AppLayout() {
         </div>
       </aside>
 
+      <header className="md:hidden flex items-center justify-between border-b border-surface-2 bg-surface px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-white">
+            <Dumbbell size={14} strokeWidth={2.5} />
+          </div>
+          <span className="font-extrabold tracking-tight">{t('app.name')}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
+                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
+              }`
+            }
+            aria-label={t('nav.settings')}
+          >
+            <Settings size={18} />
+          </NavLink>
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
+                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
+              }`
+            }
+            aria-label={t('nav.profile')}
+          >
+            <User size={18} />
+          </NavLink>
+        </div>
+      </header>
+
       <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden">
         <Outlet />
       </main>

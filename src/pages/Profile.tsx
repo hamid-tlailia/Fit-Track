@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Select } from '@/components/ui/Select'
 import { activityLevels } from '@/lib/calculations'
-import type { Goal } from '@/store/useAppStore'
+import type { ActivityLevel, Goal } from '@/store/useAppStore'
 import { useAppStore } from '@/store/useAppStore'
 
 const goals: Goal[] = ['loseWeight', 'buildMuscle', 'stayFit', 'endurance']
@@ -62,34 +63,20 @@ export default function Profile() {
 
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium text-ink-soft">{t('profile.goal')}</span>
-          <select
+          <Select
             value={form.goal}
-            onChange={(event) => setForm((f) => ({ ...f, goal: event.target.value as Goal }))}
-            className="rounded-xl border border-surface-2 bg-surface-2 px-3.5 py-2.5"
-          >
-            {goals.map((goal) => (
-              <option key={goal} value={goal}>
-                {t(`onboarding.goal.${goal}`)}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setForm((f) => ({ ...f, goal: value as Goal }))}
+            options={goals.map((goal) => ({ value: goal, label: t(`onboarding.goal.${goal}`) }))}
+          />
         </label>
 
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium text-ink-soft">{t('profile.activityLevel')}</span>
-          <select
+          <Select
             value={form.activityLevel}
-            onChange={(event) =>
-              setForm((f) => ({ ...f, activityLevel: event.target.value as typeof f.activityLevel }))
-            }
-            className="rounded-xl border border-surface-2 bg-surface-2 px-3.5 py-2.5"
-          >
-            {activityLevels.map((level) => (
-              <option key={level} value={level}>
-                {t(`profile.activity.${level}`)}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setForm((f) => ({ ...f, activityLevel: value as ActivityLevel }))}
+            options={activityLevels.map((level) => ({ value: level, label: t(`profile.activity.${level}`) }))}
+          />
         </label>
 
         <Button onClick={handleSave}>{saved ? t('profile.saved') : t('profile.save')}</Button>

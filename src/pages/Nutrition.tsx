@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import type { SelectGroup } from '@/components/ui/Select'
+import { Select } from '@/components/ui/Select'
 import type { FoodCategory, LoggedFoodEntry } from '@/data/foods'
 import { foods } from '@/data/foods'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
@@ -31,15 +33,21 @@ export default function Nutrition() {
   const [grams, setGrams] = useState(100)
   const [meal, setMeal] = useState<LoggedFoodEntry['meal']>('breakfast')
 
-  const foodsByCategory = useMemo(() => {
+  const foodOptions = useMemo(() => {
     const groups = new Map<FoodCategory, typeof foods>()
     for (const food of foods) {
       const list = groups.get(food.category) ?? []
       list.push(food)
       groups.set(food.category, list)
     }
-    return groups
-  }, [])
+    const result: SelectGroup[] = Array.from(groups.entries()).map(([category, items]) => ({
+      label: t(`nutrition.foodCategories.${category}`),
+      options: items.map((food) => ({ value: food.id, label: isAr ? food.nameAr : food.nameEn })),
+    }))
+    return result
+  }, [t, isAr])
+
+  const mealOptions = meals.map((m) => ({ value: m, label: t(`nutrition.meals.${m}`) }))
 
   const targets = user
     ? calculateMacros(calculateTDEE(calculateBMR(user.weightKg, user.heightCm, user.age, user.gender), user.activityLevel), user.goal)
@@ -101,21 +109,7 @@ export default function Nutrition() {
       <Card className="mt-6 flex flex-col gap-3">
         <h2 className="font-bold">{t('nutrition.addFood')}</h2>
         <div className="grid grid-cols-2 gap-3">
-          <select
-            value={foodId}
-            onChange={(event) => setFoodId(event.target.value)}
-            className="col-span-2 rounded-xl border border-surface-2 bg-surface-2 px-3 py-2.5 text-sm"
-          >
-            {Array.from(foodsByCategory.entries()).map(([category, items]) => (
-              <optgroup key={category} label={t(`nutrition.foodCategories.${category}`)}>
-                {items.map((food) => (
-                  <option key={food.id} value={food.id}>
-                    {isAr ? food.nameAr : food.nameEn}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+          <Select value={foodId} onChange={setFoodId} options={foodOptions} className="col-span-2" />
           <input
             type="number"
             min={1}
@@ -124,17 +118,11 @@ export default function Nutrition() {
             placeholder={t('nutrition.grams')}
             className="rounded-xl border border-surface-2 bg-surface-2 px-3 py-2.5 text-sm"
           />
-          <select
+          <Select
             value={meal}
-            onChange={(event) => setMeal(event.target.value as LoggedFoodEntry['meal'])}
-            className="rounded-xl border border-surface-2 bg-surface-2 px-3 py-2.5 text-sm"
-          >
-            {meals.map((m) => (
-              <option key={m} value={m}>
-                {t(`nutrition.meals.${m}`)}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setMeal(value as LoggedFoodEntry['meal'])}
+            options={mealOptions}
+          />
         </div>
         <Button onClick={handleAddFood}>{t('nutrition.add')}</Button>
       </Card>
