@@ -97,4 +97,23 @@ async function migrate() {
       logged_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS rate_limit_hits (
+      id BIGSERIAL PRIMARY KEY,
+      bucket_key TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS rate_limit_hits_key_time ON rate_limit_hits (bucket_key, created_at)`
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
 }

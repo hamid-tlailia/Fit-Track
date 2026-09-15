@@ -1,9 +1,12 @@
-import { Check, LogOut, Volume2 } from 'lucide-react'
+import { Check, Download, LogOut, Trash2, Volume2 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+import { PremiumGate } from '@/components/PremiumGate'
 import { Card } from '@/components/ui/Card'
 import i18n, { type SupportedLanguage, supportedLanguages } from '@/i18n'
+import { api } from '@/lib/api'
 import { speak } from '@/lib/voice'
 import { applyTheme, themes } from '@/lib/themes'
 import type { Units, VoiceGender } from '@/store/useAppStore'
@@ -25,6 +28,10 @@ export default function Settings() {
   const units = useAppStore((state) => state.units)
   const setUnits = useAppStore((state) => state.setUnits)
   const logout = useAuthStore((state) => state.logout)
+  const deleteAccount = useAuthStore((state) => state.deleteAccount)
+
+  const [exported, setExported] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   function handleTestVoice() {
     speak(t('settings.testVoiceSample'), {
@@ -35,6 +42,24 @@ export default function Settings() {
 
   async function handleLogout() {
     await logout()
+    navigate('/onboarding')
+  }
+
+  async function handleExport() {
+    const data = await api.get('/export')
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'fitforge-data-export.json'
+    link.click()
+    URL.revokeObjectURL(url)
+    setExported(true)
+    setTimeout(() => setExported(false), 1800)
+  }
+
+  async function handleDeleteAccount() {
+    await deleteAccount()
     navigate('/onboarding')
   }
 
@@ -139,12 +164,51 @@ export default function Settings() {
 
       <Card className="mt-4">
         <h2 className="font-bold mb-3">{t('settings.account')}</h2>
+
+        <PremiumGate requires="pro" descriptionKey="settings.exportProOnly">
+          <button
+            onClick={() => void handleExport()}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-2 px-4 py-2.5 text-sm font-semibold"
+          >
+            <Download size={16} /> {exported ? t('settings.exportDone') : t('settings.exportData')}
+          </button>
+        </PremiumGate>
+
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-sm font-semibold text-red-400"
+          className="mt-4 flex items-center gap-2 text-sm font-semibold text-red-400"
         >
           <LogOut size={16} /> {t('settings.logout')}
         </button>
+
+        <div className="mt-4 border-t border-surface-2 pt-4">
+          {confirmingDelete ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-ink-soft">{t('settings.deleteAccountConfirm')}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => void handleDeleteAccount()}
+                  className="rounded-xl bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-400"
+                >
+                  {t('settings.deleteAccountConfirmButton')}
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(false)}
+                  className="rounded-xl bg-surface-2 px-4 py-2 text-sm font-semibold text-ink-soft"
+                >
+                  {t('common.cancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="flex items-center gap-2 text-sm font-semibold text-ink-soft hover:text-red-400"
+            >
+              <Trash2 size={16} /> {t('settings.deleteAccount')}
+            </button>
+          )}
+        </div>
       </Card>
     </div>
   )

@@ -2,6 +2,7 @@ import {
   Dumbbell,
   Home,
   LineChart,
+  MessageCircle,
   Salad,
   Settings,
   Sparkles,
@@ -27,6 +28,7 @@ const mainNavItems: NavItem[] = [
 ]
 
 const secondaryNavItems: NavItem[] = [
+  { to: '/coach', icon: MessageCircle, labelKey: 'coach' },
   { to: '/settings', icon: Settings, labelKey: 'settings' },
   { to: '/profile', icon: User, labelKey: 'profile' },
 ]
@@ -61,6 +63,17 @@ export function AppLayout() {
           <span className="font-extrabold tracking-tight">{t('app.name')}</span>
         </div>
         <div className="flex items-center gap-1.5">
+          <NavLink
+            to="/coach"
+            className={({ isActive }) =>
+              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
+                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
+              }`
+            }
+            aria-label={t('nav.coach')}
+          >
+            <MessageCircle size={18} />
+          </NavLink>
           <NavLink
             to="/settings"
             className={({ isActive }) =>

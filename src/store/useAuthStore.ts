@@ -55,6 +55,7 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<{ ok: true } | { ok: false; error: string }>
   login: (payload: LoginPayload) => Promise<{ ok: true } | { ok: false; error: string }>
   logout: () => Promise<void>
+  deleteAccount: () => Promise<void>
   updateProfile: (patch: Partial<Pick<AuthUser, 'weightKg' | 'heightCm' | 'age' | 'goal' | 'activityLevel'>>) => Promise<void>
   setSubscriptionTier: (tier: SubscriptionTier) => Promise<void>
 }
@@ -97,6 +98,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   logout: async () => {
     await api.post('/auth/logout').catch(() => undefined)
+    set({ user: null, status: 'guest' })
+    useTrackerStore.getState().reset()
+  },
+
+  deleteAccount: async () => {
+    await api.delete('/account')
     set({ user: null, status: 'guest' })
     useTrackerStore.getState().reset()
   },

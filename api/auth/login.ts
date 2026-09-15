@@ -2,18 +2,23 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 import { createSession, setSessionCookie, verifyPassword } from '../_lib/auth.js'
 import { ensureSchema, sql } from '../_lib/db.js'
+import { checkRateLimit, getClientIp } from '../_lib/rateLimit.js'
 import type { UserRow } from '../_lib/types.js'
 import { serializeUser } from '../_lib/types.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
+  await ensureSchema()
+  const allowed = await checkRateLimit(`login:${getClientIp(req)}`, 15, 15 * 60)
+  if (!allowed) {
+    return res.status(429).json({ error: 'Too many login attempts, try again later', code: 'rate_limited' })
+  }
+
   const { email, password } = req.body ?? {}
   if (typeof email !== 'string' || typeof password !== 'string') {
     return res.status(400).json({ error: 'Email and password are required', code: 'invalid_credentials' })
   }
-
-  await ensureSchema()
 
   const normalizedEmail = email.trim().toLowerCase()
   const rows = await sql`SELECT * FROM users WHERE email = ${normalizedEmail}`
