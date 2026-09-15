@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const [weightEntries, foodLog, waterRows, completedWorkouts, personalRecords] = await Promise.all([
     sql`SELECT id, kg, logged_at FROM weight_entries WHERE user_id = ${user.id} ORDER BY logged_at ASC`,
     sql`SELECT id, food_id, grams, meal, logged_at FROM food_log WHERE user_id = ${user.id} ORDER BY logged_at ASC`,
-    sql`SELECT logged_at::date AS date, SUM(ml) AS ml FROM water_log WHERE user_id = ${user.id} GROUP BY logged_at::date`,
+    sql`SELECT logged_at::date::text AS date, SUM(ml) AS ml FROM water_log WHERE user_id = ${user.id} GROUP BY logged_at::date`,
     sql`SELECT id, workout_id, duration_min, calories, completed_at FROM completed_workouts WHERE user_id = ${user.id} ORDER BY completed_at ASC`,
     sql`SELECT id, exercise_name_en, exercise_name_ar, value, logged_at FROM personal_records WHERE user_id = ${user.id} ORDER BY logged_at DESC`,
   ])
