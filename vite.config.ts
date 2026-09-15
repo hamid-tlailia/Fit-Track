@@ -28,12 +28,24 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // The AI form-check page lazy-loads TensorFlow.js + pose-detection
+        // (~1.5MB) on demand — don't force that download on every install.
+        globIgnores: ['**/pose-detection*.js', '**/tfjs*.js', '**/dist-*.js', '**/shared-*.js'],
+        runtimeCaching: [
+          {
+            urlPattern: /\.(?:js)$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'lazy-chunks' },
+          },
+        ],
       },
     }),
   ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // See src/lib/mediapipe-pose-stub.ts for why this is stubbed out.
+      '@mediapipe/pose': fileURLToPath(new URL('./src/lib/mediapipe-pose-stub.ts', import.meta.url)),
     },
   },
 })

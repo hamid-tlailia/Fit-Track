@@ -1,4 +1,4 @@
-import { Lock } from 'lucide-react'
+import { Camera, Lock } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -20,6 +20,25 @@ export default function WorkoutsList() {
   return (
     <div className="max-w-3xl mx-auto px-5 pt-8 pb-6 md:pt-10">
       <h1 className="text-2xl font-extrabold">{t('workouts.title')}</h1>
+
+      <Link
+        to="/form-check"
+        className="mt-4 flex items-center gap-3 rounded-2xl p-4 text-white"
+        style={{ background: 'linear-gradient(135deg, #d21fff, #39ffd6)' }}
+      >
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/15">
+          <Camera size={20} />
+        </div>
+        <div className="flex-1">
+          <p className="font-extrabold text-sm">{t('formCheck.title')}</p>
+          <p className="text-xs text-white/80">{t('formCheck.subtitle')}</p>
+        </div>
+        {!isPremium(tier) && (
+          <span className="flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1 text-[11px] font-semibold shrink-0">
+            <Lock size={11} /> {t('workouts.premiumBadge')}
+          </span>
+        )}
+      </Link>
 
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1 -mx-5 px-5">
         {categories.map((category) => (

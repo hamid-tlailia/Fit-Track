@@ -7,6 +7,7 @@ import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import Coach from '@/pages/Coach'
 import Dashboard from '@/pages/Dashboard'
+import FormCheck from '@/pages/FormCheck'
 import Nutrition from '@/pages/Nutrition'
 import Onboarding from '@/pages/Onboarding'
 import Profile from '@/pages/Profile'
@@ -88,6 +89,7 @@ export default function App() {
         <Route path="/nutrition" element={<Nutrition />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/coach" element={<Coach />} />
+        <Route path="/form-check" element={<FormCheck />} />
         <Route path="/subscription" element={<Subscription />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile" element={<Profile />} />

@@ -223,6 +223,29 @@
     "save": "Save changes",
     "saved": "Saved!"
   },
+  "formCheck": {
+    "title": "AI Form Check",
+    "subtitle": "Camera-based rep counting and form feedback, right in your browser.",
+    "betaNotice": "Beta — a simple angle-based heuristic, not a substitute for a real coach. Stop if anything hurts.",
+    "practiceNotice": "Practice mode: reps here aren't saved to your history.",
+    "chooseExercise": "Choose an exercise",
+    "exercises": {
+      "squat": "Squat",
+      "pushup": "Push-up"
+    },
+    "start": "Start camera",
+    "reps": "Reps",
+    "reset": "Reset",
+    "back": "Back",
+    "loadingModel": "Loading the pose-detection model...",
+    "cameraPermissionDenied": "Camera access was denied. Allow camera access in your browser settings to use this feature.",
+    "notSupported": "Your browser doesn't support the camera features this needs.",
+    "getInPosition": "Get in position — step back so your full body is visible",
+    "feedback": {
+      "goDeeper": "Go a little deeper",
+      "goodRep": "Nice rep!"
+    }
+  },
   "coach": {
     "title": "AI Coach",
     "subtitle": "Ask about workouts, nutrition, or your plan.",
