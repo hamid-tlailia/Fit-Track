@@ -14,8 +14,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Fit Track',
-        short_name: 'Fit Track',
+        name: 'FitForge',
+        short_name: 'FitForge',
         description: 'Bilingual fitness & health tracking, workouts, nutrition and AI coaching.',
         theme_color: '#0b0d12',
         background_color: '#0b0d12',

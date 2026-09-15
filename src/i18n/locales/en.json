@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Fit Track"
+    "name": "FitForge"
   },
   "nav": {
     "dashboard": "Home",
@@ -120,6 +120,16 @@
       "lunch": "Lunch",
       "dinner": "Dinner",
       "snack": "Snack"
+    },
+    "foodCategories": {
+      "protein": "Protein",
+      "carb": "Carbs & Grains",
+      "fruit": "Fruits",
+      "vegetable": "Vegetables",
+      "dairy": "Dairy",
+      "fat": "Fats & Nuts",
+      "legume": "Legumes",
+      "mixedDish": "Mixed Dishes"
     }
   },
   "progress": {

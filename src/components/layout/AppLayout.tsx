@@ -38,8 +38,8 @@ export function AppLayout() {
     <div className="min-h-dvh bg-bg text-ink flex flex-col md:flex-row">
       <aside className="hidden md:flex md:w-64 md:flex-col md:border-e md:border-surface-2 md:bg-surface md:p-4 md:gap-1">
         <div className="flex items-center gap-2 px-2 py-4">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center font-extrabold text-white">
-            F
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-white">
+            <Dumbbell size={18} strokeWidth={2.5} />
           </div>
           <span className="text-lg font-extrabold tracking-tight">{t('app.name')}</span>
         </div>

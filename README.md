@@ -1,4 +1,4 @@
-# Fit Track
+# FitForge
 
 A bilingual (Arabic/English) fitness & health tracking web app — workouts with
 voice-guided coaching, nutrition logging, progress analytics, and a

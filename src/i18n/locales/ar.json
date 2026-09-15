@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "فِت تراك"
+    "name": "FitForge"
   },
   "nav": {
     "dashboard": "الرئيسية",
@@ -120,6 +120,16 @@
       "lunch": "غداء",
       "dinner": "عشاء",
       "snack": "وجبة خفيفة"
+    },
+    "foodCategories": {
+      "protein": "بروتين",
+      "carb": "كربوهيدرات وحبوب",
+      "fruit": "فواكه",
+      "vegetable": "خضروات",
+      "dairy": "ألبان",
+      "fat": "دهون ومكسرات",
+      "legume": "بقوليات",
+      "mixedDish": "أطباق مشكّلة"
     }
   },
   "progress": {

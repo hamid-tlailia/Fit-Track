@@ -1,10 +1,10 @@
 import { Droplets, Minus, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import type { LoggedFoodEntry } from '@/data/foods'
+import type { FoodCategory, LoggedFoodEntry } from '@/data/foods'
 import { foods } from '@/data/foods'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
 import { useAppStore } from '@/store/useAppStore'
@@ -30,6 +30,16 @@ export default function Nutrition() {
   const [foodId, setFoodId] = useState(foods[0].id)
   const [grams, setGrams] = useState(100)
   const [meal, setMeal] = useState<LoggedFoodEntry['meal']>('breakfast')
+
+  const foodsByCategory = useMemo(() => {
+    const groups = new Map<FoodCategory, typeof foods>()
+    for (const food of foods) {
+      const list = groups.get(food.category) ?? []
+      list.push(food)
+      groups.set(food.category, list)
+    }
+    return groups
+  }, [])
 
   const targets = user
     ? calculateMacros(calculateTDEE(calculateBMR(user.weightKg, user.heightCm, user.age, user.gender), user.activityLevel), user.goal)
@@ -96,10 +106,14 @@ export default function Nutrition() {
             onChange={(event) => setFoodId(event.target.value)}
             className="col-span-2 rounded-xl border border-surface-2 bg-surface-2 px-3 py-2.5 text-sm"
           >
-            {foods.map((food) => (
-              <option key={food.id} value={food.id}>
-                {isAr ? food.nameAr : food.nameEn}
-              </option>
+            {Array.from(foodsByCategory.entries()).map(([category, items]) => (
+              <optgroup key={category} label={t(`nutrition.foodCategories.${category}`)}>
+                {items.map((food) => (
+                  <option key={food.id} value={food.id}>
+                    {isAr ? food.nameAr : food.nameEn}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
           <input
