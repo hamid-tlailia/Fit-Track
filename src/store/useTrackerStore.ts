@@ -72,27 +72,31 @@ export const useTrackerStore = create<TrackerState>()((set, get) => ({
   reset: () => set(empty),
 
   addWeightEntry: async (kg) => {
-    const { entry } = await api.post<{ entry: WeightEntry }>('/weight', { kg })
+    const { entry } = await api.post<{ entry: WeightEntry }>('/tracking', { resource: 'weight', kg })
     set((state) => ({ weightEntries: [...state.weightEntries, entry] }))
   },
 
   logFood: async (entry) => {
-    const { entry: created } = await api.post<{ entry: LoggedFoodEntry }>('/food-log', entry)
+    const { entry: created } = await api.post<{ entry: LoggedFoodEntry }>('/tracking', {
+      resource: 'food-log',
+      ...entry,
+    })
     set((state) => ({ foodLog: [...state.foodLog, created] }))
   },
 
   removeFoodEntry: async (id) => {
-    await api.delete(`/food-log?id=${encodeURIComponent(id)}`)
+    await api.delete(`/tracking?resource=food-log&id=${encodeURIComponent(id)}`)
     set((state) => ({ foodLog: state.foodLog.filter((entry) => entry.id !== id) }))
   },
 
   addWater: async (ml) => {
-    const { totalMlToday } = await api.post<{ totalMlToday: number }>('/water', { ml })
+    const { totalMlToday } = await api.post<{ totalMlToday: number }>('/tracking', { resource: 'water', ml })
     set((state) => ({ waterByDate: { ...state.waterByDate, [todayKey()]: totalMlToday } }))
   },
 
   completeWorkout: async (workoutId, durationMin, calories) => {
-    const { entry } = await api.post<{ entry: CompletedWorkout }>('/workouts/complete', {
+    const { entry } = await api.post<{ entry: CompletedWorkout }>('/tracking', {
+      resource: 'workout',
       workoutId,
       durationMin,
       calories,
@@ -101,7 +105,10 @@ export const useTrackerStore = create<TrackerState>()((set, get) => ({
   },
 
   addPersonalRecord: async (record) => {
-    const { record: created } = await api.post<{ record: PersonalRecord }>('/personal-records', record)
+    const { record: created } = await api.post<{ record: PersonalRecord }>('/tracking', {
+      resource: 'personal-record',
+      ...record,
+    })
     set((state) => ({ personalRecords: [created, ...state.personalRecords] }))
   },
 

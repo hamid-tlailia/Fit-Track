@@ -76,7 +76,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   register: async (payload) => {
     try {
-      const data = await api.post<{ user: AuthUser }>('/auth/register', payload)
+      const data = await api.post<{ user: AuthUser }>('/auth', { action: 'register', ...payload })
       set({ user: data.user, status: 'authenticated' })
       useTrackerStore.getState().reset()
       return { ok: true }
@@ -87,7 +87,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   login: async (payload) => {
     try {
-      const data = await api.post<{ user: AuthUser }>('/auth/login', payload)
+      const data = await api.post<{ user: AuthUser }>('/auth', { action: 'login', ...payload })
       set({ user: data.user, status: 'authenticated' })
       await get().bootstrap()
       return { ok: true }
@@ -97,7 +97,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   logout: async () => {
-    await api.post('/auth/logout').catch(() => undefined)
+    await api.post('/auth', { action: 'logout' }).catch(() => undefined)
     set({ user: null, status: 'guest' })
     useTrackerStore.getState().reset()
   },
@@ -109,12 +109,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   updateProfile: async (patch) => {
-    const data = await api.patch<{ user: AuthUser }>('/profile', patch)
+    const data = await api.patch<{ user: AuthUser }>('/account', patch)
     set({ user: data.user })
   },
 
   setSubscriptionTier: async (tier) => {
-    const data = await api.post<{ user: AuthUser }>('/subscription', { tier })
+    const data = await api.post<{ user: AuthUser }>('/account', { tier })
     set({ user: data.user })
   },
 }))
