@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", "Inter", system-ui, sans-serif;
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+
+  --color-accent: var(--accent);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+}
+
+/* Default theme: "Energy" (orange/red, energetic) */
+:root {
+  --brand-50: #fff4ed;
+  --brand-100: #ffe6d5;
+  --brand-200: #fec9a8;
+  --brand-300: #fda471;
+  --brand-400: #fb7038;
+  --brand-500: #f84f14;
+  --brand-600: #e9350a;
+  --brand-700: #c1250a;
+  --brand-800: #991f10;
+  --brand-900: #7c1d10;
+
+  --accent: #22d3ee;
+  --bg: #0b0d12;
+  --surface: #141821;
+  --surface-2: #1c212c;
+  --ink: #f4f6fb;
+  --ink-soft: #9aa3b2;
+}
+
+/* Warrior theme: deep purple + gold */
+:root[data-theme="warrior"] {
+  --brand-50: #f5f3ff;
+  --brand-100: #ede9fe;
+  --brand-200: #ddd6fe;
+  --brand-300: #c4b5fd;
+  --brand-400: #a78bfa;
+  --brand-500: #8b5cf6;
+  --brand-600: #7c3aed;
+  --brand-700: #6d28d9;
+  --brand-800: #5b21b6;
+  --brand-900: #4c1d95;
+
+  --accent: #fbbf24;
+  --bg: #0d0a17;
+  --surface: #171128;
+  --surface-2: #201a34;
+  --ink: #f6f4ff;
+  --ink-soft: #a89fc2;
+}
+
+/* Calm theme: teal/green, softer for recovery-focused users */
+:root[data-theme="calm"] {
+  --brand-50: #ecfdf5;
+  --brand-100: #d1fae5;
+  --brand-200: #a7f3d0;
+  --brand-300: #6ee7b7;
+  --brand-400: #34d399;
+  --brand-500: #10b981;
+  --brand-600: #059669;
+  --brand-700: #047857;
+  --brand-800: #065f46;
+  --brand-900: #064e3b;
+
+  --accent: #60a5fa;
+  --bg: #0a1210;
+  --surface: #101d19;
+  --surface-2: #172822;
+  --ink: #eefdf6;
+  --ink-soft: #9bc2b5;
+}
+
+/* Neon theme: electric pink/cyan, high-energy gym vibe */
+:root[data-theme="neon"] {
+  --brand-50: #fdf2ff;
+  --brand-100: #fae0ff;
+  --brand-200: #f5c2ff;
+  --brand-300: #ee94ff;
+  --brand-400: #e454ff;
+  --brand-500: #d21fff;
+  --brand-600: #b60ce0;
+  --brand-700: #930aba;
+  --brand-800: #780c95;
+  --brand-900: #630f79;
+
+  --accent: #39ffd6;
+  --bg: #0a0512;
+  --surface: #150a24;
+  --surface-2: #1e1032;
+  --ink: #fbf5ff;
+  --ink-soft: #b79fce;
+}
+
+html {
+  color-scheme: dark;
+}
+
+html[dir="rtl"] body {
+  font-family: "Cairo", system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--surface-2);
+  border-radius: 9999px;
+}

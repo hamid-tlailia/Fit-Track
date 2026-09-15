@@ -1,0 +1,219 @@
+{
+  "app": {
+    "name": "Fit Track"
+  },
+  "nav": {
+    "dashboard": "Home",
+    "workouts": "Workouts",
+    "nutrition": "Nutrition",
+    "progress": "Progress",
+    "subscription": "Premium",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "onboarding": {
+    "chooseLanguage": "Choose your language",
+    "welcome": "Welcome to Fit Track",
+    "tagline": "Train smarter. Eat better. Track everything.",
+    "chooseGoal": "What's your main goal?",
+    "goal": {
+      "loseWeight": "Lose weight",
+      "buildMuscle": "Build muscle",
+      "stayFit": "Stay fit",
+      "endurance": "Improve endurance"
+    },
+    "chooseGender": "Who's training?",
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "continue": "Continue",
+    "getStarted": "Get started"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Create account",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "signUp": "Sign up",
+    "signIn": "Sign in",
+    "continueAsGuest": "Continue as guest"
+  },
+  "dashboard": {
+    "greeting": "Hey {{name}} 👋",
+    "subtitle": "Let's crush today's goals.",
+    "caloriesToday": "Calories today",
+    "waterToday": "Water intake",
+    "streakLabel": "Streak",
+    "quickActions": "Quick actions",
+    "startWorkout": "Start a workout",
+    "logFood": "Log food",
+    "addWater": "Add 250ml",
+    "suggestedWorkout": "Suggested for you",
+    "viewAll": "View all",
+    "motivation": {
+      "energy": "Show up. Every rep counts.",
+      "warrior": "Discipline beats motivation.",
+      "calm": "Progress, not perfection.",
+      "neon": "Turn up the intensity."
+    }
+  },
+  "workouts": {
+    "title": "Workouts",
+    "categories": {
+      "all": "All",
+      "strength": "Strength",
+      "hiit": "HIIT",
+      "cardio": "Cardio",
+      "mobility": "Mobility"
+    },
+    "level": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "premiumBadge": "Premium",
+    "exercisesCount": "{{count}} exercises"
+  },
+  "workoutDetail": {
+    "start": "Start workout",
+    "exercises": "Exercises",
+    "premiumDescription": "This AI-adaptive program adjusts sets and rest based on your performance. Unlock it with Premium."
+  },
+  "player": {
+    "setLabel": "Set {{current}} / {{total}}",
+    "reps": "reps",
+    "done": "Done",
+    "rest": "Rest",
+    "restCue": "Rest. Get ready for the next move.",
+    "pause": "Pause",
+    "resume": "Resume",
+    "skip": "Skip",
+    "exit": "End workout",
+    "complete": {
+      "title": "Workout complete!",
+      "subtitle": "Great work. You burned approximately {{calories}} kcal.",
+      "backToWorkouts": "Back to workouts",
+      "dashboard": "Go to dashboard"
+    }
+  },
+  "nutrition": {
+    "title": "Nutrition",
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "target": "target",
+    "water": "Water",
+    "addFood": "Add food",
+    "selectFood": "Select food",
+    "grams": "Grams",
+    "meal": "Meal",
+    "add": "Add",
+    "log": "Today's log",
+    "noEntries": "No food logged yet today.",
+    "meals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    }
+  },
+  "progress": {
+    "title": "Progress",
+    "weight": "Weight",
+    "currentWeight": "Current weight",
+    "addWeight": "Log weight (kg)",
+    "add": "Add",
+    "noWeightData": "Log your weight to see your trend here.",
+    "weeklyActivity": "Last 7 days activity",
+    "caloriesBurned": "kcal burned",
+    "personalRecords": "Personal records",
+    "addPR": "Add a record",
+    "exerciseName": "Exercise name",
+    "value": "Value (e.g. 80kg x 5)",
+    "noPRs": "No personal records yet."
+  },
+  "subscription": {
+    "title": "Fit Track Premium",
+    "subtitle": "Unlock AI-powered coaching and advanced tools.",
+    "demoNotice": "Demo mode — no payment is processed yet. This just switches your plan locally.",
+    "current": "Current plan",
+    "choose": "Choose plan",
+    "active": "Active",
+    "month": "/month",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "features": ["Workout & nutrition logging", "Progress charts", "Core workout library", "2 motivational themes"]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "$9.99",
+        "features": ["Everything in Free", "AI coach chat", "AI form-check with camera", "Adaptive AI programs", "All workout themes", "Advanced analytics"]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$19.99",
+        "features": ["Everything in Premium", "Custom AI-generated programs", "Priority AI coaching", "Wearable integrations", "Data export"]
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Workout theme",
+    "voiceCoach": "Voice coach",
+    "voiceEnabled": "Voice cues during workouts",
+    "voiceGender": "Coach voice",
+    "male": "Male",
+    "female": "Female",
+    "testVoice": "Test voice",
+    "testVoiceSample": "Let's go! Keep pushing, you've got this.",
+    "units": "Units",
+    "metric": "Metric (kg/cm)",
+    "imperial": "Imperial (lb/ft)",
+    "account": "Account",
+    "logout": "Log out"
+  },
+  "profile": {
+    "title": "Profile",
+    "weightKg": "Weight (kg)",
+    "heightCm": "Height (cm)",
+    "age": "Age",
+    "goal": "Goal",
+    "activityLevel": "Activity level",
+    "activity": {
+      "sedentary": "Sedentary",
+      "light": "Lightly active",
+      "moderate": "Moderately active",
+      "active": "Active",
+      "veryActive": "Very active"
+    },
+    "save": "Save changes",
+    "saved": "Saved!"
+  },
+  "themes": {
+    "energy": { "name": "Energy", "description": "Bold orange & cyan for high-intensity drive" },
+    "warrior": { "name": "Warrior", "description": "Deep purple & gold, built for strength days" },
+    "calm": { "name": "Calm", "description": "Teal & soft blue for recovery and mobility" },
+    "neon": { "name": "Neon", "description": "Electric pink & cyan gym vibes" }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "comingSoon": "Coming soon",
+    "locked": "Locked",
+    "premiumOnly": "Premium feature",
+    "unlock": "Unlock with Premium",
+    "kcal": "kcal",
+    "minutes": "min",
+    "today": "Today",
+    "streak": "day streak"
+  }
+}
