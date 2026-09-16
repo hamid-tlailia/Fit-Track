@@ -31,7 +31,7 @@ export default function Onboarding() {
     <div className="min-h-dvh flex flex-col bg-bg text-ink px-6 py-10">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
         <div className="mb-8 flex items-center gap-2">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-white">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
             <Dumbbell size={20} strokeWidth={2.5} />
           </div>
           <span className="text-xl font-extrabold">{t('app.name')}</span>
@@ -65,7 +65,7 @@ export default function Onboarding() {
 
         {step === 'welcome' && (
           <div className="flex flex-1 flex-col justify-center gap-4 text-center">
-            <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-white">
+            <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
               <Dumbbell size={36} strokeWidth={2.25} />
             </div>
             <h1 className="text-2xl font-extrabold">{t('onboarding.welcome')}</h1>

@@ -28,6 +28,8 @@ export default function Progress() {
   const [weightInput, setWeightInput] = useState('')
   const [prName, setPrName] = useState('')
   const [prValue, setPrValue] = useState('')
+  const [addingWeight, setAddingWeight] = useState(false)
+  const [addingPR, setAddingPR] = useState(false)
 
   const weightData = weightEntries.map((entry) => ({
     date: entry.dateISO.slice(5, 10),
@@ -43,18 +45,28 @@ export default function Progress() {
       .reduce((sum, w) => sum + w.calories, 0),
   }))
 
-  function handleAddWeight() {
+  async function handleAddWeight() {
     const kg = Number(weightInput)
     if (!kg || kg <= 0) return
-    void addWeightEntry(kg)
-    setWeightInput('')
+    setAddingWeight(true)
+    try {
+      await addWeightEntry(kg)
+      setWeightInput('')
+    } finally {
+      setAddingWeight(false)
+    }
   }
 
-  function handleAddPR() {
+  async function handleAddPR() {
     if (!prName.trim() || !prValue.trim()) return
-    void addPersonalRecord({ exerciseNameEn: prName, exerciseNameAr: prName, value: prValue })
-    setPrName('')
-    setPrValue('')
+    setAddingPR(true)
+    try {
+      await addPersonalRecord({ exerciseNameEn: prName, exerciseNameAr: prName, value: prValue })
+      setPrName('')
+      setPrValue('')
+    } finally {
+      setAddingPR(false)
+    }
   }
 
   return (
@@ -92,7 +104,9 @@ export default function Progress() {
             placeholder={t('progress.addWeight')}
             className="flex-1 rounded-xl border border-surface-2 bg-surface-2 px-3 py-2.5 text-sm"
           />
-          <Button onClick={handleAddWeight}>{t('progress.add')}</Button>
+          <Button onClick={() => void handleAddWeight()} loading={addingWeight}>
+            {t('progress.add')}
+          </Button>
         </div>
       </Card>
 
@@ -141,7 +155,7 @@ export default function Progress() {
             className="rounded-xl border border-surface-2 bg-surface-2 px-3 py-2.5 text-sm"
           />
         </div>
-        <Button className="w-full mt-2" variant="secondary" onClick={handleAddPR}>
+        <Button className="w-full mt-2" variant="secondary" onClick={() => void handleAddPR()} loading={addingPR}>
           {t('progress.addPR')}
         </Button>
       </Card>

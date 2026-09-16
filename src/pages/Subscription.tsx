@@ -68,7 +68,7 @@ export default function Subscription() {
                 className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                   isCurrent
                     ? 'bg-surface-2 text-ink-soft cursor-default'
-                    : 'bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:brightness-110'
+                    : 'bg-gradient-to-r from-brand-500 to-brand-600 text-[var(--ink-on-brand)] hover:brightness-110'
                 }`}
               >
                 {isCurrent ? t('subscription.active') : t('subscription.choose')}

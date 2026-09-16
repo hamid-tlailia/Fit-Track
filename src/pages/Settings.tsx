@@ -31,7 +31,10 @@ export default function Settings() {
   const deleteAccount = useAuthStore((state) => state.deleteAccount)
 
   const [exported, setExported] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   function handleTestVoice() {
     speak(t('settings.testVoiceSample'), {
@@ -41,26 +44,41 @@ export default function Settings() {
   }
 
   async function handleLogout() {
-    await logout()
-    navigate('/onboarding')
+    setLoggingOut(true)
+    try {
+      await logout()
+      navigate('/onboarding')
+    } finally {
+      setLoggingOut(false)
+    }
   }
 
   async function handleExport() {
-    const data = await api.get('/me?export=1')
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'fitforge-data-export.json'
-    link.click()
-    URL.revokeObjectURL(url)
-    setExported(true)
-    setTimeout(() => setExported(false), 1800)
+    setExporting(true)
+    try {
+      const data = await api.get('/me?export=1')
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'fitforge-data-export.json'
+      link.click()
+      URL.revokeObjectURL(url)
+      setExported(true)
+      setTimeout(() => setExported(false), 1800)
+    } finally {
+      setExporting(false)
+    }
   }
 
   async function handleDeleteAccount() {
-    await deleteAccount()
-    navigate('/onboarding')
+    setDeleting(true)
+    try {
+      await deleteAccount()
+      navigate('/onboarding')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -168,17 +186,29 @@ export default function Settings() {
         <PremiumGate requires="pro" descriptionKey="settings.exportProOnly">
           <button
             onClick={() => void handleExport()}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-2 px-4 py-2.5 text-sm font-semibold"
+            disabled={exporting}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-2 px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
           >
-            <Download size={16} /> {exported ? t('settings.exportDone') : t('settings.exportData')}
+            {exporting ? (
+              <span className="h-4 w-4 rounded-full border-2 border-ink/30 border-t-ink animate-spin" />
+            ) : (
+              <Download size={16} />
+            )}
+            {exported ? t('settings.exportDone') : t('settings.exportData')}
           </button>
         </PremiumGate>
 
         <button
-          onClick={handleLogout}
-          className="mt-4 flex items-center gap-2 text-sm font-semibold text-red-400"
+          onClick={() => void handleLogout()}
+          disabled={loggingOut}
+          className="mt-4 flex items-center gap-2 text-sm font-semibold text-red-400 disabled:opacity-50"
         >
-          <LogOut size={16} /> {t('settings.logout')}
+          {loggingOut ? (
+            <span className="h-4 w-4 rounded-full border-2 border-red-400/30 border-t-red-400 animate-spin" />
+          ) : (
+            <LogOut size={16} />
+          )}
+          {t('settings.logout')}
         </button>
 
         <div className="mt-4 border-t border-surface-2 pt-4">
@@ -188,13 +218,16 @@ export default function Settings() {
               <div className="flex gap-2">
                 <button
                   onClick={() => void handleDeleteAccount()}
-                  className="rounded-xl bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-400"
+                  disabled={deleting}
+                  className="flex items-center gap-2 rounded-xl bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-400 disabled:opacity-50"
                 >
+                  {deleting && <span className="h-3.5 w-3.5 rounded-full border-2 border-red-400/30 border-t-red-400 animate-spin" />}
                   {t('settings.deleteAccountConfirmButton')}
                 </button>
                 <button
                   onClick={() => setConfirmingDelete(false)}
-                  className="rounded-xl bg-surface-2 px-4 py-2 text-sm font-semibold text-ink-soft"
+                  disabled={deleting}
+                  className="rounded-xl bg-surface-2 px-4 py-2 text-sm font-semibold text-ink-soft disabled:opacity-50"
                 >
                   {t('common.cancel')}
                 </button>

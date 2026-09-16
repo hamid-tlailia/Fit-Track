@@ -16,6 +16,7 @@ export default function Profile() {
   const updateProfile = useAuthStore((state) => state.updateProfile)
   const tier = user?.subscriptionTier ?? 'free'
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   const [form, setForm] = useState(() => ({
     weightKg: user?.weightKg ?? 70,
@@ -28,15 +29,20 @@ export default function Profile() {
   if (!user) return null
 
   async function handleSave() {
-    await updateProfile(form)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 1800)
+    setSaving(true)
+    try {
+      await updateProfile(form)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 1800)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <div className="max-w-lg mx-auto px-5 pt-8 pb-10 md:pt-10">
       <div className="flex items-center gap-4">
-        <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-2xl font-extrabold text-white">
+        <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-2xl font-extrabold text-[var(--ink-on-brand)]">
           {user.name.slice(0, 1).toUpperCase()}
         </div>
         <div>
@@ -79,7 +85,9 @@ export default function Profile() {
           />
         </label>
 
-        <Button onClick={handleSave}>{saved ? t('profile.saved') : t('profile.save')}</Button>
+        <Button onClick={() => void handleSave()} loading={saving}>
+          {saved ? t('profile.saved') : t('profile.save')}
+        </Button>
       </Card>
     </div>
   )

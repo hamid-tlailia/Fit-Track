@@ -47,7 +47,7 @@ export default function WorkoutsList() {
             onClick={() => setFilter(category)}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
               filter === category
-                ? 'bg-brand-500 text-white'
+                ? 'bg-brand-500 text-[var(--ink-on-brand)]'
                 : 'bg-surface text-ink-soft border border-surface-2'
             }`}
           >

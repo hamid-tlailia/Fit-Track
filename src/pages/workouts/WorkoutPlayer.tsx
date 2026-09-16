@@ -179,7 +179,7 @@ export default function WorkoutPlayer() {
         {phase.durationSec ? (
           <button
             onClick={() => setRunning((value) => !value)}
-            className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-lg"
+            className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-[var(--ink-on-brand)] shadow-lg"
           >
             {running ? <Pause size={26} /> : <Play size={26} />}
           </button>

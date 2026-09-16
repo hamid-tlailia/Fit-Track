@@ -71,7 +71,7 @@ function CoachChat() {
               key={index}
               className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
                 message.role === 'user'
-                  ? 'self-end bg-gradient-to-r from-brand-500 to-brand-600 text-white'
+                  ? 'self-end bg-gradient-to-r from-brand-500 to-brand-600 text-[var(--ink-on-brand)]'
                   : 'self-start bg-surface-2 text-ink'
               }`}
             >
@@ -99,7 +99,7 @@ function CoachChat() {
         <button
           type="submit"
           disabled={sending || !input.trim()}
-          className="rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-semibold text-[var(--ink-on-brand)] disabled:opacity-50"
         >
           {t('coach.send')}
         </button>

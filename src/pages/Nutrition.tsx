@@ -1,6 +1,7 @@
-import { Droplets, Minus, Plus, Trash2 } from 'lucide-react'
+import { Droplets, Flame, Minus, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { RadialBar, RadialBarChart } from 'recharts'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -32,6 +33,8 @@ export default function Nutrition() {
   const [foodId, setFoodId] = useState(foods[0].id)
   const [grams, setGrams] = useState(100)
   const [meal, setMeal] = useState<LoggedFoodEntry['meal']>('breakfast')
+  const [addingFood, setAddingFood] = useState(false)
+  const [waterPending, setWaterPending] = useState(false)
 
   const foodOptions = useMemo(() => {
     const groups = new Map<FoodCategory, typeof foods>()
@@ -67,9 +70,24 @@ export default function Nutrition() {
     },
     { calories: 0, protein: 0, carbs: 0, fat: 0 },
   )
+  const caloriesPct = Math.min(100, Math.round((totals.calories / targets.calories) * 100))
 
-  function handleAddFood() {
-    void logFood({ foodId, grams, meal })
+  async function handleAddFood() {
+    setAddingFood(true)
+    try {
+      await logFood({ foodId, grams, meal })
+    } finally {
+      setAddingFood(false)
+    }
+  }
+
+  async function handleAddWater(ml: number) {
+    setWaterPending(true)
+    try {
+      await addWater(ml)
+    } finally {
+      setWaterPending(false)
+    }
   }
 
   return (
@@ -77,24 +95,48 @@ export default function Nutrition() {
       <h1 className="text-2xl font-extrabold">{t('nutrition.title')}</h1>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <Macro label={t('nutrition.calories')} value={Math.round(totals.calories)} target={targets.calories} unit={t('common.kcal')} />
+        <Card className="flex flex-col items-center text-center">
+          <div className="relative h-24 w-24">
+            <RadialBarChart
+              width={96}
+              height={96}
+              innerRadius={34}
+              outerRadius={46}
+              barSize={8}
+              data={[{ value: caloriesPct, fill: 'var(--brand-500)' }]}
+              startAngle={90}
+              endAngle={-270}
+            >
+              <RadialBar dataKey="value" cornerRadius={8} background={{ fill: 'var(--surface-2)' }} />
+            </RadialBarChart>
+            <div className="absolute inset-0 grid place-items-center">
+              <Flame size={16} className="text-brand-400" />
+            </div>
+          </div>
+          <p className="text-lg font-black mt-1">{Math.round(totals.calories)}</p>
+          <p className="text-xs text-ink-soft font-semibold">
+            / {targets.calories} {t('common.kcal')}
+          </p>
+        </Card>
         <Card className="flex flex-col justify-center gap-2">
           <div className="flex items-center gap-1.5 text-sm font-semibold">
             <Droplets size={16} className="text-accent" /> {t('nutrition.water')}
           </div>
-          <p className="text-xl font-extrabold">{(waterMl / 1000).toFixed(2)}L</p>
+          <p className="text-2xl font-black">{(waterMl / 1000).toFixed(2)}L</p>
           <div className="flex gap-2">
             <button
-              onClick={() => void addWater(-250)}
-              className="grid h-8 w-8 place-items-center rounded-full bg-surface-2"
+              onClick={() => void handleAddWater(-250)}
+              disabled={waterPending}
+              className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 disabled:opacity-50"
             >
-              <Minus size={14} />
+              {waterPending ? <span className="h-3.5 w-3.5 rounded-full border-2 border-ink/30 border-t-ink animate-spin" /> : <Minus size={15} />}
             </button>
             <button
-              onClick={() => void addWater(250)}
-              className="grid h-8 w-8 place-items-center rounded-full bg-surface-2"
+              onClick={() => void handleAddWater(250)}
+              disabled={waterPending}
+              className="grid h-9 w-9 place-items-center rounded-full bg-brand-500 text-[var(--ink-on-brand)] shadow-[0_0_16px_-4px_var(--brand-500)] disabled:opacity-50"
             >
-              <Plus size={14} />
+              {waterPending ? <span className="h-3.5 w-3.5 rounded-full border-2 border-[var(--ink-on-brand)]/30 border-t-[var(--ink-on-brand)] animate-spin" /> : <Plus size={15} />}
             </button>
           </div>
         </Card>
@@ -124,7 +166,9 @@ export default function Nutrition() {
             options={mealOptions}
           />
         </div>
-        <Button onClick={handleAddFood}>{t('nutrition.add')}</Button>
+        <Button onClick={() => void handleAddFood()} loading={addingFood}>
+          {t('nutrition.add')}
+        </Button>
       </Card>
 
       <h2 className="mt-6 mb-3 font-bold text-ink-soft text-sm uppercase tracking-wide">{t('nutrition.log')}</h2>
