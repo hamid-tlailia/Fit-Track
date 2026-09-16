@@ -95,7 +95,9 @@ export default function Dashboard() {
               key={d.toISOString()}
               ref={isToday ? todayRef : undefined}
               className={`flex flex-col items-center justify-center gap-0.5 rounded-2xl px-3.5 py-2.5 shrink-0 ${
-                isToday ? 'bg-brand-500 text-[var(--ink-on-brand)]' : 'bg-surface border border-surface-2 text-ink-soft'
+                isToday
+                  ? 'bg-brand-500 text-[var(--ink-on-brand)] shadow-[0_0_20px_-4px_var(--brand-500)]'
+                  : 'bg-surface border border-surface-2 text-ink-soft'
               }`}
             >
               <span className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
@@ -121,17 +123,20 @@ export default function Dashboard() {
         <ActivityRow
           icon={<Flame size={18} className="text-brand-400" />}
           label={t('dashboard.caloriesToday')}
-          value={`${caloriesToday} / ${caloriesTarget} ${t('common.kcal')}`}
+          primary={`${caloriesToday}`}
+          suffix={`/ ${caloriesTarget} ${t('common.kcal')}`}
         />
         <ActivityRow
           icon={<Droplets size={18} className="text-accent" />}
           label={t('dashboard.waterToday')}
-          value={`${(waterMl / 1000).toFixed(1)}L`}
+          primary={(waterMl / 1000).toFixed(1)}
+          suffix="L"
         />
         <ActivityRow
           icon={<Zap size={18} className="text-brand-400" />}
           label={t('dashboard.streakLabel')}
-          value={`${streak} ${t('common.streak')}`}
+          primary={`${streak}`}
+          suffix={t('common.streak')}
           last
         />
       </Card>
@@ -158,7 +163,7 @@ export default function Dashboard() {
             {suggested.durationMin} {t('common.minutes')} · {suggested.calories} {t('common.kcal')}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-brand-500 text-[var(--ink-on-brand)] text-sm font-bold px-4 py-2">
+        <span className="shrink-0 rounded-full bg-brand-500 text-[var(--ink-on-brand)] text-sm font-bold px-4 py-2 shadow-[0_0_20px_-4px_var(--brand-500)]">
           {t('workoutDetail.start')}
         </span>
       </Link>
@@ -211,7 +216,7 @@ export default function Dashboard() {
               <RadialBar dataKey="value" cornerRadius={8} background={{ fill: 'var(--surface-2)' }} />
             </RadialBarChart>
             <div className="absolute inset-0 grid place-items-center">
-              <span className="text-sm font-extrabold">{caloriesPct}%</span>
+              <span className="text-base font-black">{caloriesPct}%</span>
             </div>
           </div>
           <p className="text-xs text-ink-soft font-semibold mt-2">{t('dashboard.calorieGoal')}</p>
@@ -242,7 +247,7 @@ export default function Dashboard() {
         <button
           onClick={() => setFabOpen((v) => !v)}
           aria-label={t('dashboard.quickActions')}
-          className="h-14 w-14 rounded-full bg-brand-500 text-[var(--ink-on-brand)] grid place-items-center shadow-xl shadow-black/30 hover:brightness-110 active:brightness-95 transition"
+          className="h-14 w-14 rounded-full bg-brand-500 text-[var(--ink-on-brand)] grid place-items-center shadow-[0_0_28px_-4px_var(--brand-500)] hover:brightness-110 active:brightness-95 transition"
         >
           {fabOpen ? <X size={22} /> : <Plus size={22} />}
         </button>
@@ -251,12 +256,27 @@ export default function Dashboard() {
   )
 }
 
-function ActivityRow({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: string; last?: boolean }) {
+function ActivityRow({
+  icon,
+  label,
+  primary,
+  suffix,
+  last,
+}: {
+  icon: React.ReactNode
+  label: string
+  primary: string
+  suffix: string
+  last?: boolean
+}) {
   return (
     <div className={`flex items-center gap-3 px-2.5 py-3 ${last ? '' : 'border-b border-surface-2'}`}>
       <div className="h-10 w-10 shrink-0 rounded-full bg-brand-500/10 grid place-items-center">{icon}</div>
-      <span className="flex-1 text-sm font-semibold">{label}</span>
-      <span className="text-sm font-extrabold text-ink-soft">{value}</span>
+      <span className="flex-1 text-sm text-ink-soft font-medium">{label}</span>
+      <span className="text-end leading-none">
+        <span className="text-lg font-black tracking-tight">{primary}</span>
+        <span className="text-xs text-ink-soft font-semibold ms-1">{suffix}</span>
+      </span>
     </div>
   )
 }
