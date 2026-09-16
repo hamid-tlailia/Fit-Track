@@ -89,6 +89,15 @@ function FormCheckSession() {
     [],
   )
 
+  // The <video> element only mounts once stage === 'ready', so the stream
+  // can only be attached to it after that render — not inside startExercise.
+  useEffect(() => {
+    if (stage === 'ready' && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      void videoRef.current.play()
+    }
+  }, [stage])
+
   function loop() {
     rafRef.current = requestAnimationFrame(async () => {
       if (!runningRef.current) return
@@ -138,10 +147,6 @@ function FormCheckSession() {
         return
       }
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        await videoRef.current.play()
-      }
 
       const [tf, poseDetection] = await Promise.all([
         import('@tensorflow/tfjs'),
