@@ -8,7 +8,7 @@ export interface ThemeDefinition {
 }
 
 export const themes: ThemeDefinition[] = [
-  { id: 'energy', nameKey: 'themes.energy.name', descriptionKey: 'themes.energy.description', swatch: ['#f84f14', '#22d3ee'] },
+  { id: 'energy', nameKey: 'themes.energy.name', descriptionKey: 'themes.energy.description', swatch: ['#c8fa54', '#4fc8ff'] },
   { id: 'warrior', nameKey: 'themes.warrior.name', descriptionKey: 'themes.warrior.description', swatch: ['#8b5cf6', '#fbbf24'] },
   { id: 'calm', nameKey: 'themes.calm.name', descriptionKey: 'themes.calm.description', swatch: ['#10b981', '#60a5fa'] },
   { id: 'neon', nameKey: 'themes.neon.name', descriptionKey: 'themes.neon.description', swatch: ['#d21fff', '#39ffd6'] },

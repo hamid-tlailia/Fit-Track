@@ -64,6 +64,14 @@
     "addWater": "أضف 250 مل",
     "suggestedWorkout": "مقترح لك",
     "viewAll": "عرض الكل",
+    "recentActivity": "النشاط الأخير",
+    "healthMetrics": "المقاييس الصحية",
+    "todaySession": "حصة اليوم",
+    "weightTrend": "اتجاه الوزن",
+    "calorieGoal": "هدف السعرات",
+    "noWeightYet": "سجّل وزنك لترى اتجاهه هنا",
+    "kcalLeft": "متبقٍ {{count}} سعرة",
+    "kcalOver": "زيادة {{count}} سعرة",
     "motivation": {
       "energy": "احضر دائمًا. كل تكرار له قيمة.",
       "warrior": "الانضباط أقوى من الحماس.",
@@ -262,7 +270,7 @@
     }
   },
   "themes": {
-    "energy": { "name": "الطاقة", "description": "برتقالي وسماوي جريء لأيام الحماس العالي" },
+    "energy": { "name": "الطاقة", "description": "أخضر ليموني كهربائي وسماوي لأيام الحماس العالي" },
     "warrior": { "name": "المحارب", "description": "بنفسجي غامق وذهبي، مصمم لأيام القوة" },
     "calm": { "name": "الهدوء", "description": "أخضر مائي وأزرق فاتح للتعافي والمرونة" },
     "neon": { "name": "نيون", "description": "وردي كهربائي وسماوي بروح الجيم" }

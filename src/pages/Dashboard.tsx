@@ -1,6 +1,8 @@
-import { Droplets, Flame, Plus, Salad } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Bell, ChevronRight, Droplets, Flame, Plus, Salad, X, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { Line, LineChart, RadialBar, RadialBarChart } from 'recharts'
 
 import { Card } from '@/components/ui/Card'
 import { foods } from '@/data/foods'
@@ -10,111 +12,271 @@ import { useAppStore } from '@/store/useAppStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { todayKey, useTrackerStore } from '@/store/useTrackerStore'
 
+function currentWeek(): Date[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i))
+    return d
+  })
+}
+
 export default function Dashboard() {
   const { t, i18n } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const theme = useAppStore((state) => state.theme)
   const foodLog = useTrackerStore((state) => state.foodLog)
   const waterByDate = useTrackerStore((state) => state.waterByDate)
+  const weightEntries = useTrackerStore((state) => state.weightEntries)
   const streak = useTrackerStore((state) => state.currentStreak())
+  const addWater = useTrackerStore((state) => state.addWater)
+
+  const [fabOpen, setFabOpen] = useState(false)
+  const todayRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    todayRef.current?.scrollIntoView({ inline: 'end', block: 'nearest' })
+  }, [])
 
   const isAr = i18n.language === 'ar'
+  const locale = isAr ? 'ar' : 'en-US'
   const key = todayKey()
   const waterMl = waterByDate[key] ?? 0
-  const addWater = useTrackerStore((state) => state.addWater)
 
   const caloriesTarget = user
     ? Math.round(calculateMacros(calculateTDEE(calculateBMR(user.weightKg, user.heightCm, user.age, user.gender), user.activityLevel), user.goal).calories)
     : 2000
 
-  const caloriesToday = foodLog
-    .filter((entry) => entry.loggedAt.slice(0, 10) === key)
-    .reduce((sum, entry) => {
-      const food = foods.find((f) => f.id === entry.foodId)
-      return food ? sum + (food.kcalPer100g * entry.grams) / 100 : sum
-    }, 0)
+  const caloriesToday = Math.round(
+    foodLog
+      .filter((entry) => entry.loggedAt.slice(0, 10) === key)
+      .reduce((sum, entry) => {
+        const food = foods.find((f) => f.id === entry.foodId)
+        return food ? sum + (food.kcalPer100g * entry.grams) / 100 : sum
+      }, 0),
+  )
+  const caloriesRemaining = caloriesTarget - caloriesToday
+  const caloriesPct = Math.min(100, Math.round((caloriesToday / caloriesTarget) * 100))
 
   const suggested = workouts[0]
 
-  return (
-    <div className="max-w-3xl mx-auto px-5 pt-8 pb-6 md:pt-10">
-      <h1 className="text-2xl font-extrabold">{t('dashboard.greeting', { name: user?.name ?? '' })}</h1>
-      <p className="text-ink-soft mt-1">{t('dashboard.subtitle')}</p>
+  const weightData = weightEntries.slice(-10).map((entry) => ({ kg: entry.kg }))
+  const latestWeight = weightEntries.at(-1)?.kg
+  const previousWeight = weightEntries.at(-2)?.kg
+  const weightDelta = latestWeight != null && previousWeight != null ? latestWeight - previousWeight : null
 
-      <div
-        className="mt-5 rounded-2xl p-5 text-white font-bold text-lg"
-        style={{ background: `linear-gradient(135deg, var(--brand-500), var(--accent))` }}
-      >
-        {t(`dashboard.motivation.${theme}`)}
+  const initial = (user?.name?.trim()?.[0] ?? '?').toUpperCase()
+
+  return (
+    <div className="max-w-3xl mx-auto px-5 pt-6 pb-8 md:pt-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)] font-extrabold">
+            {initial}
+          </div>
+          <div>
+            <h1 className="text-lg font-extrabold leading-tight">{t('dashboard.greeting', { name: user?.name ?? '' })}</h1>
+            <p className="text-ink-soft text-sm">{t('dashboard.subtitle')}</p>
+          </div>
+        </div>
+        <Link
+          to="/settings"
+          aria-label={t('nav.settings')}
+          className="h-10 w-10 shrink-0 grid place-items-center rounded-full bg-surface border border-surface-2 text-ink-soft hover:text-ink hover:border-brand-500/50 transition"
+        >
+          <Bell size={18} />
+        </Link>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        <Card className="flex flex-col items-center gap-1 text-center">
-          <Flame size={18} className="text-brand-400" />
-          <span className="text-lg font-extrabold">{Math.round(caloriesToday)}</span>
-          <span className="text-[11px] text-ink-soft">
-            {t('dashboard.caloriesToday')} / {caloriesTarget}
-          </span>
-        </Card>
-        <Card className="flex flex-col items-center gap-1 text-center">
-          <Droplets size={18} className="text-accent" />
-          <span className="text-lg font-extrabold">{(waterMl / 1000).toFixed(1)}L</span>
-          <span className="text-[11px] text-ink-soft">{t('dashboard.waterToday')}</span>
-        </Card>
-        <Card className="flex flex-col items-center gap-1 text-center">
-          <span className="text-lg font-extrabold">🔥{streak}</span>
-          <span className="text-[11px] text-ink-soft">{t('dashboard.streakLabel')}</span>
-        </Card>
+      <div className="mt-5 flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 no-scrollbar">
+        {currentWeek().map((d) => {
+          const isToday = d.toDateString() === new Date().toDateString()
+          return (
+            <div
+              key={d.toISOString()}
+              ref={isToday ? todayRef : undefined}
+              className={`flex flex-col items-center justify-center gap-0.5 rounded-2xl px-3.5 py-2.5 shrink-0 ${
+                isToday ? 'bg-brand-500 text-[var(--ink-on-brand)]' : 'bg-surface border border-surface-2 text-ink-soft'
+              }`}
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
+                {d.toLocaleDateString(locale, { weekday: 'short' })}
+              </span>
+              <span className="text-sm font-extrabold">{d.getDate()}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-brand-500/30 bg-surface p-5 relative overflow-hidden">
+        <span className="pointer-events-none absolute -end-4 -top-4 text-7xl font-black tracking-tighter text-brand-500/10 select-none">
+          {t(`themes.${theme}.name`)}
+        </span>
+        <p className="relative font-extrabold text-lg text-brand-400">{t(`dashboard.motivation.${theme}`)}</p>
       </div>
 
       <h2 className="mt-7 mb-3 font-bold text-ink-soft text-sm uppercase tracking-wide">
-        {t('dashboard.quickActions')}
+        {t('dashboard.recentActivity')}
       </h2>
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          to="/workouts"
-          className="rounded-2xl border border-surface-2 bg-surface p-4 font-semibold hover:border-brand-500 transition"
-        >
-          {t('dashboard.startWorkout')}
-        </Link>
-        <Link
-          to="/nutrition"
-          className="rounded-2xl border border-surface-2 bg-surface p-4 font-semibold hover:border-brand-500 transition flex items-center gap-2"
-        >
-          <Salad size={17} /> {t('dashboard.logFood')}
-        </Link>
-        <button
-          onClick={() => void addWater(250)}
-          className="rounded-2xl border border-surface-2 bg-surface p-4 font-semibold hover:border-brand-500 transition flex items-center gap-2 text-start"
-        >
-          <Plus size={17} /> {t('dashboard.addWater')}
-        </button>
-        <Link
-          to="/progress"
-          className="rounded-2xl border border-surface-2 bg-surface p-4 font-semibold hover:border-brand-500 transition"
-        >
-          {t('nav.progress')}
-        </Link>
-      </div>
+      <Card className="p-2">
+        <ActivityRow
+          icon={<Flame size={18} className="text-brand-400" />}
+          label={t('dashboard.caloriesToday')}
+          value={`${caloriesToday} / ${caloriesTarget} ${t('common.kcal')}`}
+        />
+        <ActivityRow
+          icon={<Droplets size={18} className="text-accent" />}
+          label={t('dashboard.waterToday')}
+          value={`${(waterMl / 1000).toFixed(1)}L`}
+        />
+        <ActivityRow
+          icon={<Zap size={18} className="text-brand-400" />}
+          label={t('dashboard.streakLabel')}
+          value={`${streak} ${t('common.streak')}`}
+          last
+        />
+      </Card>
 
       <div className="mt-7 flex items-center justify-between">
-        <h2 className="font-bold text-ink-soft text-sm uppercase tracking-wide">
-          {t('dashboard.suggestedWorkout')}
-        </h2>
-        <Link to="/workouts" className="text-sm font-semibold text-brand-400">
-          {t('dashboard.viewAll')}
+        <h2 className="font-bold text-ink-soft text-sm uppercase tracking-wide">{t('dashboard.todaySession')}</h2>
+        <Link to="/workouts" className="text-sm font-semibold text-brand-400 inline-flex items-center gap-0.5">
+          {t('dashboard.viewAll')} <ChevronRight size={14} className="rtl:rotate-180" />
         </Link>
       </div>
       <Link
         to={`/workouts/${suggested.id}`}
-        className="mt-3 block rounded-2xl p-5 text-white"
-        style={{ background: `linear-gradient(135deg, ${suggested.gradient[0]}, ${suggested.gradient[1]})` }}
+        className="mt-3 flex items-center gap-4 rounded-2xl border border-surface-2 bg-surface p-4 hover:border-brand-500/50 transition"
       >
-        <p className="font-extrabold text-lg">{isAr ? suggested.titleAr : suggested.titleEn}</p>
-        <p className="text-white/80 text-sm mt-1">
-          {suggested.durationMin} {t('common.minutes')} · {suggested.calories} {t('common.kcal')}
-        </p>
+        <div
+          className="h-14 w-14 shrink-0 rounded-xl grid place-items-center text-[var(--ink-on-brand)] font-extrabold text-lg"
+          style={{ background: `linear-gradient(135deg, ${suggested.gradient[0]}, ${suggested.gradient[1]})` }}
+        >
+          {(isAr ? suggested.titleAr : suggested.titleEn).slice(0, 1)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-extrabold truncate">{isAr ? suggested.titleAr : suggested.titleEn}</p>
+          <p className="text-ink-soft text-sm mt-0.5">
+            {suggested.durationMin} {t('common.minutes')} · {suggested.calories} {t('common.kcal')}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-brand-500 text-[var(--ink-on-brand)] text-sm font-bold px-4 py-2">
+          {t('workoutDetail.start')}
+        </span>
       </Link>
+
+      <h2 className="mt-7 mb-3 font-bold text-ink-soft text-sm uppercase tracking-wide">
+        {t('dashboard.healthMetrics')}
+      </h2>
+      <div className="grid grid-cols-2 gap-3">
+        <Card>
+          <p className="text-xs text-ink-soft font-semibold">{t('dashboard.weightTrend')}</p>
+          {latestWeight != null ? (
+            <>
+              <div className="flex items-baseline gap-1.5 mt-1">
+                <span className="text-2xl font-extrabold">{latestWeight}</span>
+                <span className="text-ink-soft text-sm">kg</span>
+                {weightDelta != null && weightDelta !== 0 && (
+                  <span className={`text-xs font-bold ${weightDelta < 0 ? 'text-brand-400' : 'text-ink-soft'}`}>
+                    {weightDelta > 0 ? '+' : ''}
+                    {weightDelta.toFixed(1)}
+                  </span>
+                )}
+              </div>
+              {weightData.length > 1 ? (
+                <div className="h-12 mt-2 -mx-1">
+                  <RechartsWeightSparkline data={weightData} />
+                </div>
+              ) : (
+                <div className="h-12" />
+              )}
+            </>
+          ) : (
+            <Link to="/progress" className="text-sm text-ink-soft mt-3 block">
+              {t('dashboard.noWeightYet')}
+            </Link>
+          )}
+        </Card>
+
+        <Card className="flex flex-col items-center justify-center text-center">
+          <div className="relative h-20 w-20">
+            <RadialBarChart
+              width={80}
+              height={80}
+              innerRadius={28}
+              outerRadius={38}
+              barSize={7}
+              data={[{ value: caloriesPct, fill: 'var(--brand-500)' }]}
+              startAngle={90}
+              endAngle={-270}
+            >
+              <RadialBar dataKey="value" cornerRadius={8} background={{ fill: 'var(--surface-2)' }} />
+            </RadialBarChart>
+            <div className="absolute inset-0 grid place-items-center">
+              <span className="text-sm font-extrabold">{caloriesPct}%</span>
+            </div>
+          </div>
+          <p className="text-xs text-ink-soft font-semibold mt-2">{t('dashboard.calorieGoal')}</p>
+          <p className="text-[11px] text-ink-soft mt-0.5">
+            {caloriesRemaining >= 0
+              ? t('dashboard.kcalLeft', { count: caloriesRemaining })
+              : t('dashboard.kcalOver', { count: Math.abs(caloriesRemaining) })}
+          </p>
+        </Card>
+      </div>
+
+      <div className="fixed bottom-24 end-5 md:bottom-8 z-30 flex flex-col items-end gap-2.5">
+        {fabOpen && (
+          <>
+            <FabAction to="/workouts" icon={<Zap size={16} />} label={t('dashboard.startWorkout')} onClick={() => setFabOpen(false)} />
+            <FabAction to="/nutrition" icon={<Salad size={16} />} label={t('dashboard.logFood')} onClick={() => setFabOpen(false)} />
+            <button
+              onClick={() => {
+                void addWater(250)
+                setFabOpen(false)
+              }}
+              className="flex items-center gap-2 rounded-full bg-surface border border-surface-2 pe-4 ps-3 py-2.5 text-sm font-semibold shadow-lg shadow-black/20"
+            >
+              <Droplets size={16} className="text-accent" /> {t('dashboard.addWater')}
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => setFabOpen((v) => !v)}
+          aria-label={t('dashboard.quickActions')}
+          className="h-14 w-14 rounded-full bg-brand-500 text-[var(--ink-on-brand)] grid place-items-center shadow-xl shadow-black/30 hover:brightness-110 active:brightness-95 transition"
+        >
+          {fabOpen ? <X size={22} /> : <Plus size={22} />}
+        </button>
+      </div>
     </div>
+  )
+}
+
+function ActivityRow({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: string; last?: boolean }) {
+  return (
+    <div className={`flex items-center gap-3 px-2.5 py-3 ${last ? '' : 'border-b border-surface-2'}`}>
+      <div className="h-10 w-10 shrink-0 rounded-full bg-brand-500/10 grid place-items-center">{icon}</div>
+      <span className="flex-1 text-sm font-semibold">{label}</span>
+      <span className="text-sm font-extrabold text-ink-soft">{value}</span>
+    </div>
+  )
+}
+
+function FabAction({ to, icon, label, onClick }: { to: string; icon: React.ReactNode; label: string; onClick: () => void }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="flex items-center gap-2 rounded-full bg-surface border border-surface-2 pe-4 ps-3 py-2.5 text-sm font-semibold shadow-lg shadow-black/20"
+    >
+      <span className="text-brand-400">{icon}</span> {label}
+    </Link>
+  )
+}
+
+function RechartsWeightSparkline({ data }: { data: { kg: number }[] }) {
+  return (
+    <LineChart width={140} height={48} data={data}>
+      <Line type="monotone" dataKey="kg" stroke="var(--brand-500)" strokeWidth={2} dot={false} />
+    </LineChart>
   )
 }

@@ -64,6 +64,14 @@
     "addWater": "Add 250ml",
     "suggestedWorkout": "Suggested for you",
     "viewAll": "View all",
+    "recentActivity": "Recent activity",
+    "healthMetrics": "Health metrics",
+    "todaySession": "Today's session",
+    "weightTrend": "Weight trend",
+    "calorieGoal": "Calorie goal",
+    "noWeightYet": "Log your weight to see your trend",
+    "kcalLeft": "{{count}} kcal left",
+    "kcalOver": "{{count}} kcal over",
     "motivation": {
       "energy": "Show up. Every rep counts.",
       "warrior": "Discipline beats motivation.",
@@ -262,7 +270,7 @@
     }
   },
   "themes": {
-    "energy": { "name": "Energy", "description": "Bold orange & cyan for high-intensity drive" },
+    "energy": { "name": "Energy", "description": "Electric lime & cyan for high-intensity drive" },
     "warrior": { "name": "Warrior", "description": "Deep purple & gold, built for strength days" },
     "calm": { "name": "Calm", "description": "Teal & soft blue for recovery and mobility" },
     "neon": { "name": "Neon", "description": "Electric pink & cyan gym vibes" }
