@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 import { getUserFromRequest } from '../_lib/auth.js'
@@ -7,6 +6,7 @@ import { checkRateLimit } from '../_lib/rateLimit.js'
 import type { UserRow } from '../_lib/types.js'
 
 const HISTORY_LIMIT = 20
+const GEMINI_MODEL = 'gemini-2.0-flash'
 
 function buildSystemPrompt(user: UserRow): string {
   return `You are the in-app AI fitness coach for FitForge, a bilingual (Arabic/English) fitness tracking app.
@@ -15,6 +15,14 @@ The user's profile: goal=${user.goal}, gender=${user.gender}, weight=${user.weig
 Give concise, practical, encouraging fitness and nutrition guidance tailored to this profile.
 You are not a medical professional. For injury, pain, or any medical condition, tell the user to consult a doctor or qualified professional instead of diagnosing or prescribing treatment.
 Keep replies focused and conversational, generally under 150 words unless the user explicitly asks for more detail.`
+}
+
+interface GeminiResponse {
+  candidates?: {
+    content?: { parts?: { text?: string }[] }
+    finishReason?: string
+  }[]
+  promptFeedback?: { blockReason?: string }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -46,54 +54,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'message is required' })
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
     return res.status(503).json({
-      error: 'The AI coach is not configured yet — an ANTHROPIC_API_KEY is missing from this deployment.',
+      error: 'The AI coach is not configured yet — a GEMINI_API_KEY is missing from this deployment.',
       code: 'ai_not_configured',
     })
   }
 
+  const trimmedMessage = message.trim()
   const historyRows = (await sql`
     SELECT role, content FROM chat_messages
     WHERE user_id = ${user.id} ORDER BY created_at ASC LIMIT ${HISTORY_LIMIT}
   `) as { role: string; content: string }[]
 
-  const client = new Anthropic({ apiKey })
-  const trimmedMessage = message.trim()
-
-  let response
+  let data: GeminiResponse
   try {
-    response = await client.beta.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: 1024,
-      system: buildSystemPrompt(user),
-      output_config: { effort: 'low' },
-      // Opus 5's safety classifiers can decline a benign request; route declines
-      // to Anthropic's recommended fallback model instead of surfacing a refusal.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      messages: [
-        ...historyRows.map((row) => ({
-          role: row.role === 'assistant' ? ('assistant' as const) : ('user' as const),
-          content: row.content,
-        })),
-        { role: 'user' as const, content: trimmedMessage },
-      ],
-    })
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: buildSystemPrompt(user) }] },
+          contents: [
+            ...historyRows.map((row) => ({
+              role: row.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: row.content }],
+            })),
+            { role: 'user', parts: [{ text: trimmedMessage }] },
+          ],
+        }),
+      },
+    )
+    if (!geminiRes.ok) {
+      console.error('Gemini API error', geminiRes.status, await geminiRes.text())
+      return res.status(502).json({ error: 'The AI coach is temporarily unavailable', code: 'ai_unavailable' })
+    }
+    data = (await geminiRes.json()) as GeminiResponse
   } catch (error) {
-    console.error('Anthropic API error', error)
+    console.error('Gemini request failed', error)
     return res.status(502).json({ error: 'The AI coach is temporarily unavailable', code: 'ai_unavailable' })
   }
 
-  if (response.stop_reason === 'refusal') {
+  if (data.promptFeedback?.blockReason) {
     return res.status(200).json({
       reply: { role: 'assistant', content: "I can't help with that particular request — let's talk fitness or nutrition instead." },
     })
   }
 
   const replyText =
-    response.content.find((block) => block.type === 'text')?.text ??
+    data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ||
     "Sorry, I couldn't come up with a response just now — try again?"
 
   await sql`INSERT INTO chat_messages (user_id, role, content) VALUES (${user.id}, 'user', ${trimmedMessage})`
