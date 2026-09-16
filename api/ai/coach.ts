@@ -6,7 +6,7 @@ import { checkRateLimit } from '../_lib/rateLimit.js'
 import type { UserRow } from '../_lib/types.js'
 
 const HISTORY_LIMIT = 20
-const GEMINI_MODEL = 'gemini-2.0-flash'
+const GEMINI_MODEL = 'gemini-3.6-flash'
 
 function buildSystemPrompt(user: UserRow): string {
   return `You are the in-app AI fitness coach for FitForge, a bilingual (Arabic/English) fitness tracking app.
