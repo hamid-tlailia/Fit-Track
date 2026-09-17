@@ -1,5 +1,5 @@
-import { Check, Download, LogOut, Trash2, Volume2 } from 'lucide-react'
-import { useState } from 'react'
+import { Activity, Check, Download, LogOut, Trash2, Volume2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -35,6 +35,30 @@ export default function Settings() {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const redirectStatus = window.location.search.includes('fit=')
+    ? new URLSearchParams(window.location.search).get('fit')
+    : null
+  const redirectReason = redirectStatus ? new URLSearchParams(window.location.search).get('reason') : null
+
+  const [fitConnected, setFitConnected] = useState<boolean | null>(redirectStatus === 'connected' ? true : null)
+  const [fitBusy, setFitBusy] = useState(false)
+  const [fitMessage] = useState<string | null>(() => {
+    if (!redirectStatus) return null
+    return redirectStatus === 'connected'
+      ? t('settings.fitConnected')
+      : t(`settings.fitErrors.${redirectReason}`, { defaultValue: t('settings.fitErrors.unknown') })
+  })
+
+  useEffect(() => {
+    api
+      .get<{ connected: boolean }>('/fit?action=steps')
+      .then((data) => setFitConnected(data.connected))
+      .catch(() => setFitConnected(false))
+  }, [])
+
+  useEffect(() => {
+    if (redirectStatus) window.history.replaceState(null, '', window.location.pathname)
+  }, [redirectStatus])
 
   function handleTestVoice() {
     speak(t('settings.testVoiceSample'), {
@@ -68,6 +92,20 @@ export default function Settings() {
       setTimeout(() => setExported(false), 1800)
     } finally {
       setExporting(false)
+    }
+  }
+
+  function handleConnectFit() {
+    window.location.href = '/api/fit?action=authorize'
+  }
+
+  async function handleDisconnectFit() {
+    setFitBusy(true)
+    try {
+      await api.delete('/fit?action=disconnect')
+      setFitConnected(false)
+    } finally {
+      setFitBusy(false)
     }
   }
 
@@ -178,6 +216,44 @@ export default function Settings() {
             </button>
           ))}
         </div>
+      </Card>
+
+      <Card className="mt-4">
+        <h2 className="font-bold mb-3">{t('settings.wearables')}</h2>
+        {fitMessage && <p className="mb-3 text-sm text-ink-soft">{fitMessage}</p>}
+        <PremiumGate requires="pro" descriptionKey="settings.fitProOnly">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500/15 text-brand-400">
+              <Activity size={18} />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-sm">{t('settings.googleFit')}</p>
+              <p className="text-xs text-ink-soft">
+                {fitConnected ? t('settings.fitConnectedStatus') : t('settings.fitNotConnected')}
+              </p>
+            </div>
+            {fitConnected ? (
+              <button
+                onClick={() => void handleDisconnectFit()}
+                disabled={fitBusy}
+                className="shrink-0 rounded-xl bg-surface-2 px-3.5 py-2 text-sm font-semibold text-ink-soft disabled:opacity-50"
+              >
+                {fitBusy ? (
+                  <span className="inline-block h-4 w-4 rounded-full border-2 border-ink/30 border-t-ink animate-spin" />
+                ) : (
+                  t('settings.disconnect')
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleConnectFit}
+                className="shrink-0 rounded-xl bg-brand-500 px-3.5 py-2 text-sm font-semibold text-[var(--ink-on-brand)]"
+              >
+                {t('settings.connect')}
+              </button>
+            )}
+          </div>
+        </PremiumGate>
       </Card>
 
       <Card className="mt-4">

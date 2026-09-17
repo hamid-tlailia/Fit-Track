@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, ChevronRight, Droplets, Flame, Plus, Salad, X, Zap } from 'lucide-react'
+import { Bell, ChevronRight, Droplets, Flame, Footprints, Plus, Salad, X, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Line, LineChart, RadialBar, RadialBarChart } from 'recharts'
 
 import { Card } from '@/components/ui/Card'
 import { foods } from '@/data/foods'
+import { api } from '@/lib/api'
 import { workouts } from '@/data/workouts'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
 import { useAppStore } from '@/store/useAppStore'
@@ -31,10 +32,18 @@ export default function Dashboard() {
   const addWater = useTrackerStore((state) => state.addWater)
 
   const [fabOpen, setFabOpen] = useState(false)
+  const [steps, setSteps] = useState<number | null>(null)
   const todayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     todayRef.current?.scrollIntoView({ inline: 'end', block: 'nearest' })
+  }, [])
+
+  useEffect(() => {
+    api
+      .get<{ connected: boolean; steps?: number | null }>('/fit?action=steps')
+      .then((data) => setSteps(data.connected ? (data.steps ?? null) : null))
+      .catch(() => setSteps(null))
   }, [])
 
   const isAr = i18n.language === 'ar'
@@ -137,8 +146,17 @@ export default function Dashboard() {
           label={t('dashboard.streakLabel')}
           primary={`${streak}`}
           suffix={t('common.streak')}
-          last
+          last={steps == null}
         />
+        {steps != null && (
+          <ActivityRow
+            icon={<Footprints size={18} className="text-brand-400" />}
+            label={t('dashboard.steps')}
+            primary={steps.toLocaleString(locale)}
+            suffix={t('dashboard.stepsUnit')}
+            last
+          />
+        )}
       </Card>
 
       <div className="mt-7 flex items-center justify-between">

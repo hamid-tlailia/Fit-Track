@@ -128,4 +128,14 @@ async function migrate() {
     )
   `
   await sql`CREATE INDEX IF NOT EXISTS ai_plans_user_type ON ai_plans (user_id, type, created_at DESC)`
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS google_fit_tokens (
+      user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      access_token TEXT NOT NULL,
+      refresh_token TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      connected_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
 }
