@@ -269,6 +269,26 @@
       "unknown": "Something went wrong sending that message."
     }
   },
+  "aiPlans": {
+    "nutritionTitle": "AI Nutrition Plan",
+    "trainingTitle": "AI Training Plan",
+    "nutritionDescription": "A personalized 7-day meal plan generated for your goal and profile.",
+    "trainingDescription": "A personalized weekly training program generated for your goal and profile.",
+    "generate": "Generate my plan",
+    "regenerate": "Regenerate",
+    "downloadPdf": "Download PDF",
+    "generating": "Generating your plan...",
+    "empty": "No plan yet — generate one tailored to your profile.",
+    "disclaimer": "Not a medical or dietary professional — for medical conditions or allergies, consult a qualified professional before following this plan.",
+    "generatedOn": "Generated {{date}}",
+    "errors": {
+      "requires_pro": "AI-generated plans require Pro.",
+      "ai_not_configured": "This feature isn't set up yet — the app owner needs to add a free Gemini API key.",
+      "ai_unavailable": "The AI service is temporarily unavailable. Try again in a moment.",
+      "rate_limited": "You've generated a lot of plans — take a short break and try again soon.",
+      "unknown": "Something went wrong generating your plan."
+    }
+  },
   "themes": {
     "energy": { "name": "Energy", "description": "Electric lime & cyan for high-intensity drive" },
     "warrior": { "name": "Warrior", "description": "Deep purple & gold, built for strength days" },

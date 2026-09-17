@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RadialBar, RadialBarChart } from 'recharts'
 
+import { AiPlanCard } from '@/components/AiPlanCard'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import type { SelectGroup } from '@/components/ui/Select'
@@ -170,6 +171,10 @@ export default function Nutrition() {
           {t('nutrition.add')}
         </Button>
       </Card>
+
+      <div className="mt-6">
+        <AiPlanCard type="nutrition" />
+      </div>
 
       <h2 className="mt-6 mb-3 font-bold text-ink-soft text-sm uppercase tracking-wide">{t('nutrition.log')}</h2>
       {todayLog.length === 0 ? (

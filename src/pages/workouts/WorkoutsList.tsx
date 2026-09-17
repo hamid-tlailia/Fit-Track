@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { AiPlanCard } from '@/components/AiPlanCard'
 import type { WorkoutCategory } from '@/data/workouts'
 import { workouts } from '@/data/workouts'
 import { isPremium, useAuthStore } from '@/store/useAuthStore'
@@ -39,6 +40,10 @@ export default function WorkoutsList() {
           </span>
         )}
       </Link>
+
+      <div className="mt-4">
+        <AiPlanCard type="training" />
+      </div>
 
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1 -mx-5 px-5">
         {categories.map((category) => (
