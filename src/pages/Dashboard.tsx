@@ -41,7 +41,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     api
-      .get<{ connected: boolean; steps?: number | null }>('/fit?action=steps')
+      .get<{ connected: boolean; steps?: number | null }>(`/fit?action=steps&tzOffset=${new Date().getTimezoneOffset()}`)
       .then((data) => setSteps(data.connected ? (data.steps ?? null) : null))
       .catch(() => setSteps(null))
   }, [])

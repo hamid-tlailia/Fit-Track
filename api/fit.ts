@@ -163,17 +163,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
+    // The browser knows the user's real timezone; the server doesn't (Vercel
+    // functions run in UTC). Without this, "start of day" was midnight UTC,
+    // which is the wrong boundary for almost everyone.
+    const tzOffsetMinutes = Number(req.query.tzOffset) || 0
+    const nowMs = Date.now()
+    const localMs = nowMs - tzOffsetMinutes * 60_000
+    const startOfDay = Math.floor(localMs / 86_400_000) * 86_400_000 + tzOffsetMinutes * 60_000
     try {
       const aggRes = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          aggregateBy: [{ dataTypeName: 'com.google.step_count.delta' }],
+          aggregateBy: [
+            {
+              dataTypeName: 'com.google.step_count.delta',
+              dataSourceId: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps',
+            },
+          ],
           bucketByTime: { durationMillis: 86_400_000 },
-          startTimeMillis: startOfDay.getTime(),
-          endTimeMillis: Date.now(),
+          startTimeMillis: startOfDay,
+          endTimeMillis: nowMs,
         }),
       })
       if (!aggRes.ok) throw new Error(`Fitness API error: ${aggRes.status}`)
