@@ -151,4 +151,16 @@ async function migrate() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      read_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS notifications_user_created ON notifications (user_id, created_at DESC)`
 }

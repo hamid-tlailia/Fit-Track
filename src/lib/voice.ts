@@ -87,6 +87,14 @@ export interface SpeakOptions {
   pitch?: number
 }
 
+// Most phones only ship a single system voice per language (often the same
+// voice regardless of what name-based matching above picks), so "male" and
+// "female" can end up producing byte-identical audio. Nudging the pitch
+// keeps the two options audibly different even on a device with no real
+// male-sounding voice installed, without distorting a genuinely different
+// voice too much when one *is* available.
+const genderPitchBias: Record<VoiceGender, number> = { male: -0.18, female: 0.12 }
+
 export function speak(text: string, options: SpeakOptions): void {
   if (!isSpeechSupported()) return
   const utterance = new SpeechSynthesisUtterance(text)
@@ -94,7 +102,7 @@ export function speak(text: string, options: SpeakOptions): void {
   if (voice) utterance.voice = voice
   utterance.lang = voice?.lang ?? bcp47ByLanguage[options.lang]
   utterance.rate = options.rate ?? 1
-  utterance.pitch = options.pitch ?? 1
+  utterance.pitch = options.pitch ?? Math.min(2, Math.max(0, 1 + genderPitchBias[options.gender]))
   window.speechSynthesis.cancel()
   window.speechSynthesis.speak(utterance)
 }

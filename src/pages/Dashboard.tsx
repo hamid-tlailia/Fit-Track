@@ -11,7 +11,7 @@ import { workouts } from '@/data/workouts'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
 import { useAppStore } from '@/store/useAppStore'
 import { useAuthStore } from '@/store/useAuthStore'
-import { todayKey, useTrackerStore } from '@/store/useTrackerStore'
+import { dateKeyOf, todayKey, useTrackerStore } from '@/store/useTrackerStore'
 
 function currentWeek(): Date[] {
   return Array.from({ length: 7 }, (_, i) => {
@@ -34,6 +34,7 @@ export default function Dashboard() {
 
   const [fabOpen, setFabOpen] = useState(false)
   const [steps, setSteps] = useState<number | null>(null)
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false)
   const todayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,6 +48,13 @@ export default function Dashboard() {
       .catch(() => setSteps(null))
   }, [])
 
+  useEffect(() => {
+    api
+      .get<{ unreadCount: number }>('/push?action=list')
+      .then((data) => setHasUnreadNotifications(data.unreadCount > 0))
+      .catch(() => undefined)
+  }, [])
+
   const isAr = i18n.language === 'ar'
   const locale = isAr ? 'ar' : 'en-US'
   const key = todayKey()
@@ -58,7 +66,7 @@ export default function Dashboard() {
 
   const caloriesToday = Math.round(
     foodLog
-      .filter((entry) => entry.loggedAt.slice(0, 10) === key)
+      .filter((entry) => dateKeyOf(entry.loggedAt) === key)
       .reduce((sum, entry) => {
         const food = foods.find((f) => f.id === entry.foodId)
         return food ? sum + (food.kcalPer100g * entry.grams) / 100 : sum
@@ -69,7 +77,7 @@ export default function Dashboard() {
 
   const caloriesBurnedToday = Math.round(
     completedWorkouts
-      .filter((entry) => entry.dateISO.slice(0, 10) === key)
+      .filter((entry) => dateKeyOf(entry.dateISO) === key)
       .reduce((sum, entry) => sum + entry.calories, 0),
   )
 
@@ -95,11 +103,14 @@ export default function Dashboard() {
           </div>
         </div>
         <Link
-          to="/settings"
-          aria-label={t('dashboard.notificationsShortcut')}
-          className="h-10 w-10 shrink-0 grid place-items-center rounded-full bg-surface border border-surface-2 text-ink-soft hover:text-ink hover:border-brand-500/50 transition"
+          to="/notifications"
+          aria-label={t('nav.notifications')}
+          className="relative h-10 w-10 shrink-0 grid place-items-center rounded-full bg-surface border border-surface-2 text-ink-soft hover:text-ink hover:border-brand-500/50 transition"
         >
           <Bell size={18} />
+          {hasUnreadNotifications && (
+            <span className="absolute top-2 end-2 h-2 w-2 rounded-full bg-brand-500" />
+          )}
         </Link>
       </div>
 

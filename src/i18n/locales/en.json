@@ -10,7 +10,8 @@
   "subscription": "Premium",
   "settings": "Settings",
   "profile": "Profile",
-  "coach": "AI Coach"
+  "coach": "AI Coach",
+  "notifications": "Notifications"
  },
  "onboarding": {
   "chooseLanguage": "Choose your language",
@@ -54,7 +55,6 @@
  },
  "dashboard": {
   "greeting": "Hey {{name}} 👋",
-  "notificationsShortcut": "Notification & reminder settings",
   "subtitle": "Let's crush today's goals.",
   "caloriesToday": "Calories today",
   "caloriesBurned": "Calories burned",
@@ -153,6 +153,10 @@
    "legume": "Legumes",
    "mixedDish": "Mixed Dishes"
   }
+ },
+ "notifications": {
+  "title": "Notifications",
+  "empty": "No notifications yet. Your daily AI reminders will show up here."
  },
  "progress": {
   "title": "Progress",

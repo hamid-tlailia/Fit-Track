@@ -12,7 +12,7 @@ import type { FoodCategory, LoggedFoodEntry } from '@/data/foods'
 import { foods } from '@/data/foods'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
 import { useAuthStore } from '@/store/useAuthStore'
-import { todayKey, useTrackerStore } from '@/store/useTrackerStore'
+import { dateKeyOf, todayKey, useTrackerStore } from '@/store/useTrackerStore'
 
 const meals: LoggedFoodEntry['meal'][] = ['breakfast', 'lunch', 'dinner', 'snack']
 
@@ -29,7 +29,7 @@ export default function Nutrition() {
 
   const key = todayKey()
   const waterMl = waterByDate[key] ?? 0
-  const todayLog = foodLog.filter((entry) => entry.loggedAt.slice(0, 10) === key)
+  const todayLog = foodLog.filter((entry) => dateKeyOf(entry.loggedAt) === key)
 
   const [foodId, setFoodId] = useState(foods[0].id)
   const [gramsText, setGramsText] = useState('100')

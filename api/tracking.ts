@@ -61,9 +61,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'A non-zero ml delta is required' })
     }
     await sql`INSERT INTO water_log (user_id, ml) VALUES (${user.id}, ${Math.round(value)})`
+
+    // `logged_at::date = now()::date` compares in the database's own
+    // timezone (UTC on Neon), so "today" rolled over hours after anyone
+    // east of UTC actually hit local midnight. The client sends its real
+    // UTC offset (JS getTimezoneOffset() convention: minutes *behind* UTC)
+    // so the boundary can be computed in the user's own local day instead.
+    const tzOffsetMinutes = Number(req.body?.tzOffset) || 0
+    const nowMs = Date.now()
+    const localMs = nowMs - tzOffsetMinutes * 60_000
+    const startOfDayMs = Math.floor(localMs / 86_400_000) * 86_400_000 + tzOffsetMinutes * 60_000
+    const endOfDayMs = startOfDayMs + 86_400_000
+
     const rows = await sql`
       SELECT COALESCE(SUM(ml), 0) AS total FROM water_log
-      WHERE user_id = ${user.id} AND logged_at::date = now()::date
+      WHERE user_id = ${user.id}
+        AND logged_at >= ${new Date(startOfDayMs).toISOString()}
+        AND logged_at < ${new Date(endOfDayMs).toISOString()}
     `
     return res.status(200).json({ totalMlToday: Number((rows[0] as { total: string }).total) })
   }

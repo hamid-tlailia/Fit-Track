@@ -10,7 +10,8 @@
   "subscription": "بريميوم",
   "settings": "الإعدادات",
   "profile": "الملف الشخصي",
-  "coach": "المدرب الذكي"
+  "coach": "المدرب الذكي",
+  "notifications": "الإشعارات"
  },
  "onboarding": {
   "chooseLanguage": "اختر لغتك",
@@ -54,7 +55,6 @@
  },
  "dashboard": {
   "greeting": "أهلاً {{name}} 👋",
-  "notificationsShortcut": "إعدادات الإشعارات والتذكيرات",
   "subtitle": "لنحقق أهداف اليوم.",
   "caloriesToday": "سعرات اليوم",
   "caloriesBurned": "سعرات محروقة",
@@ -153,6 +153,10 @@
    "legume": "بقوليات",
    "mixedDish": "أطباق مشكّلة"
   }
+ },
+ "notifications": {
+  "title": "الإشعارات",
+  "empty": "لا توجد إشعارات بعد. ستظهر تذكيراتك اليومية بالذكاء الاصطناعي هنا."
  },
  "progress": {
   "title": "التقدم",

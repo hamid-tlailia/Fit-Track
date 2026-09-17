@@ -84,10 +84,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       JOIN users u ON u.id = ps.user_id
     `) as (SubscriptionRow & UserRow)[]
 
+    // One subscription row can exist per browser/device, so the same user
+    // could otherwise get the same reminder generated (and stored) more than
+    // once a day — build and store it once per user, then push to each of
+    // their devices.
+    const seenUsers = new Set<string>()
     let sent = 0
     let removed = 0
     for (const row of rows) {
       const reminder = await buildReminder(row, row.language === 'ar' ? 'ar' : 'en')
+      if (!seenUsers.has(row.user_id)) {
+        seenUsers.add(row.user_id)
+        await sql`INSERT INTO notifications (user_id, title, body) VALUES (${row.user_id}, ${reminder.title}, ${reminder.body})`
+      }
       const result = await sendPush(
         { endpoint: row.endpoint, p256dh: row.p256dh, auth: row.auth },
         reminder,
@@ -130,6 +139,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (action === 'status' && req.method === 'GET') {
     const rows = await sql`SELECT 1 FROM push_subscriptions WHERE user_id = ${user.id} LIMIT 1`
     return res.status(200).json({ subscribed: rows.length > 0 })
+  }
+
+  if (action === 'list' && req.method === 'GET') {
+    const rows = (await sql`
+      SELECT id, title, body, read_at, created_at FROM notifications
+      WHERE user_id = ${user.id} ORDER BY created_at DESC LIMIT 50
+    `) as { id: string; title: string; body: string; read_at: string | null; created_at: string }[]
+    return res.status(200).json({
+      notifications: rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        read: row.read_at !== null,
+        createdAt: row.created_at,
+      })),
+      unreadCount: rows.filter((row) => row.read_at === null).length,
+    })
+  }
+
+  if (action === 'mark-read' && req.method === 'POST') {
+    await sql`UPDATE notifications SET read_at = now() WHERE user_id = ${user.id} AND read_at IS NULL`
+    return res.status(200).json({ ok: true })
   }
 
   return res.status(400).json({ error: 'Unknown action' })

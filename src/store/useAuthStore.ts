@@ -69,7 +69,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   bootstrap: async () => {
     try {
-      const data = await api.get<BootstrapResponse>('/me')
+      const data = await api.get<BootstrapResponse>(`/me?tzOffset=${new Date().getTimezoneOffset()}`)
       set({ user: data.user, status: 'authenticated' })
       useTrackerStore.getState().hydrate(data)
     } catch {

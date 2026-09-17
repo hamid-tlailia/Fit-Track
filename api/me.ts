@@ -11,6 +11,21 @@ import type {
 } from './_lib/types.js'
 import { serializeUser } from './_lib/types.js'
 
+// Grouping water log rows with `logged_at::date` runs in the database's own
+// (UTC) timezone, so a user east of UTC would see today's water bucketed
+// into "yesterday" until UTC midnight caught up to their local one. This
+// derives the same "YYYY-MM-DD" key the client's own dateKeyOf() would, from
+// the client-supplied tz offset (JS getTimezoneOffset() convention: minutes
+// *behind* UTC).
+function localDateKey(iso: string, tzOffsetMinutes: number): string {
+  const ms = new Date(iso).getTime() - tzOffsetMinutes * 60_000
+  const d = new Date(ms)
+  const year = d.getUTCFullYear()
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -20,17 +35,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.query.export === '1') return handleExport(req, res, user)
 
+  const tzOffsetMinutes = Number(req.query.tzOffset) || 0
+
   const [weightEntries, foodLog, waterRows, completedWorkouts, personalRecords] = await Promise.all([
     sql`SELECT id, kg, logged_at FROM weight_entries WHERE user_id = ${user.id} ORDER BY logged_at ASC`,
     sql`SELECT id, food_id, grams, meal, logged_at FROM food_log WHERE user_id = ${user.id} ORDER BY logged_at ASC`,
-    sql`SELECT logged_at::date::text AS date, SUM(ml) AS ml FROM water_log WHERE user_id = ${user.id} GROUP BY logged_at::date`,
+    sql`SELECT ml, logged_at FROM water_log WHERE user_id = ${user.id} ORDER BY logged_at ASC`,
     sql`SELECT id, workout_id, duration_min, calories, completed_at FROM completed_workouts WHERE user_id = ${user.id} ORDER BY completed_at ASC`,
     sql`SELECT id, exercise_name_en, exercise_name_ar, value, logged_at FROM personal_records WHERE user_id = ${user.id} ORDER BY logged_at DESC`,
   ])
 
   const waterByDate: Record<string, number> = {}
-  for (const row of waterRows as { date: string; ml: string }[]) {
-    waterByDate[row.date] = Number(row.ml)
+  for (const row of waterRows as { ml: string; logged_at: string }[]) {
+    const key = localDateKey(row.logged_at, tzOffsetMinutes)
+    waterByDate[key] = (waterByDate[key] ?? 0) + Number(row.ml)
   }
 
   return res.status(200).json({

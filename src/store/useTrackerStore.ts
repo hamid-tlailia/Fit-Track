@@ -25,8 +25,21 @@ export interface PersonalRecord {
   dateISO: string
 }
 
+// A "YYYY-MM-DD" key in the browser's *local* calendar day. Using
+// `.toISOString().slice(0, 10)` instead (as this used to) reports the UTC
+// calendar date — for anyone east of UTC, that day only rolls over a few
+// hours after their actual local midnight, so today's totals kept showing
+// as "yesterday" for the first part of each new day.
+export function dateKeyOf(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function todayKey(): string {
-  return new Date().toISOString().slice(0, 10)
+  return dateKeyOf(new Date())
 }
 
 interface HydratePayload {
@@ -95,7 +108,11 @@ export const useTrackerStore = create<TrackerState>()((set, get) => ({
     // then reconcile with the DB's real total once it comes back.
     set((state) => ({ waterByDate: { ...state.waterByDate, [key]: (state.waterByDate[key] ?? 0) + ml } }))
     try {
-      const { totalMlToday } = await api.post<{ totalMlToday: number }>('/tracking', { resource: 'water', ml })
+      const { totalMlToday } = await api.post<{ totalMlToday: number }>('/tracking', {
+        resource: 'water',
+        ml,
+        tzOffset: new Date().getTimezoneOffset(),
+      })
       set((state) => ({ waterByDate: { ...state.waterByDate, [key]: totalMlToday } }))
     } catch (err) {
       set((state) => ({ waterByDate: { ...state.waterByDate, [key]: Math.max(0, (state.waterByDate[key] ?? ml) - ml) } }))
@@ -122,11 +139,11 @@ export const useTrackerStore = create<TrackerState>()((set, get) => ({
   },
 
   currentStreak: () => {
-    const dates = new Set(get().completedWorkouts.map((w) => w.dateISO.slice(0, 10)))
+    const dates = new Set(get().completedWorkouts.map((w) => dateKeyOf(w.dateISO)))
     let streak = 0
     const cursor = new Date()
     for (;;) {
-      const key = cursor.toISOString().slice(0, 10)
+      const key = dateKeyOf(cursor)
       if (!dates.has(key)) break
       streak += 1
       cursor.setDate(cursor.getDate() - 1)

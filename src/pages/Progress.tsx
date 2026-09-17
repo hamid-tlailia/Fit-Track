@@ -4,7 +4,7 @@ import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { useTrackerStore } from '@/store/useTrackerStore'
+import { dateKeyOf, useTrackerStore } from '@/store/useTrackerStore'
 
 function lastNDays(n: number): string[] {
   const days: string[] = []
@@ -12,7 +12,7 @@ function lastNDays(n: number): string[] {
   for (let i = n - 1; i >= 0; i -= 1) {
     const d = new Date(cursor)
     d.setDate(cursor.getDate() - i)
-    days.push(d.toISOString().slice(0, 10))
+    days.push(dateKeyOf(d))
   }
   return days
 }
@@ -41,7 +41,7 @@ export default function Progress() {
   const activityData = days.map((day) => ({
     date: day.slice(5, 10),
     calories: completedWorkouts
-      .filter((w) => w.dateISO.slice(0, 10) === day)
+      .filter((w) => dateKeyOf(w.dateISO) === day)
       .reduce((sum, w) => sum + w.calories, 0),
   }))
 

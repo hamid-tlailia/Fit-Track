@@ -9,6 +9,7 @@ import Register from '@/pages/auth/Register'
 import Coach from '@/pages/Coach'
 import Dashboard from '@/pages/Dashboard'
 import FormCheck from '@/pages/FormCheck'
+import Notifications from '@/pages/Notifications'
 import Nutrition from '@/pages/Nutrition'
 import Onboarding from '@/pages/Onboarding'
 import Profile from '@/pages/Profile'
@@ -104,6 +105,7 @@ export default function App() {
         <Route path="/subscription" element={<Subscription />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
