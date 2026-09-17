@@ -17,11 +17,18 @@ export default function WorkoutDetail() {
   const content = (
     <div>
       <div
-        className="rounded-2xl p-6 text-white"
+        className="relative overflow-hidden rounded-2xl p-6 text-white"
         style={{ background: `linear-gradient(135deg, ${workout.gradient[0]}, ${workout.gradient[1]})` }}
       >
-        <p className="text-2xl font-extrabold">{isAr ? workout.titleAr : workout.titleEn}</p>
-        <div className="mt-2 flex items-center gap-4 text-sm text-white/85">
+        <img
+          src={`https://images.unsplash.com/photo-${workout.photoId}?w=800&h=400&fit=crop&q=60`}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+        <p className="relative text-2xl font-extrabold">{isAr ? workout.titleAr : workout.titleEn}</p>
+        <div className="relative mt-2 flex items-center gap-4 text-sm text-white/85">
           <span className="flex items-center gap-1">
             <Clock size={15} /> {workout.durationMin} {t('common.minutes')}
           </span>

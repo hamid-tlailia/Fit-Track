@@ -53,8 +53,14 @@ function scoreVoice(voice: SpeechSynthesisVoice, lang: SupportedLanguage, gender
   const langMatches = voice.lang.toLowerCase().startsWith(lang)
   if (!langMatches) return -1
 
-  const hints = gender === 'female' ? femaleNameHints : maleNameHints
-  const genderMatch = hints.some((hint) => name.includes(hint))
+  // "female".includes("male") is true, so a bare substring check on the
+  // "male" hint matched female-named voices too (e.g. "Google UK English
+  // Female"), and it would often win the tiebreak — male selection kept
+  // silently speaking in a female voice. Female matching has no such clash.
+  const genderMatch =
+    gender === 'female'
+      ? femaleNameHints.some((hint) => name.includes(hint))
+      : maleNameHints.some((hint) => name.includes(hint)) && !name.includes('female')
   let score = 10
   if (genderMatch) score += 10
   if (voice.lang.toLowerCase() === bcp47ByLanguage[lang].toLowerCase()) score += 2

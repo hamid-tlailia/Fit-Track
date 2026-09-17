@@ -79,6 +79,15 @@ export default function App() {
       />
 
       <Route
+        path="/workouts/:workoutId/play"
+        element={
+          <RequireAuth>
+            <WorkoutPlayer />
+          </RequireAuth>
+        }
+      />
+
+      <Route
         element={
           <RequireAuth>
             <AppLayout />
@@ -88,7 +97,6 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="/workouts" element={<WorkoutsList />} />
         <Route path="/workouts/:workoutId" element={<WorkoutDetail />} />
-        <Route path="/workouts/:workoutId/play" element={<WorkoutPlayer />} />
         <Route path="/nutrition" element={<Nutrition />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/coach" element={<Coach />} />

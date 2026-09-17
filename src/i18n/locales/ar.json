@@ -54,6 +54,7 @@
  },
  "dashboard": {
   "greeting": "أهلاً {{name}} 👋",
+  "notificationsShortcut": "إعدادات الإشعارات والتذكيرات",
   "subtitle": "لنحقق أهداف اليوم.",
   "caloriesToday": "سعرات اليوم",
   "caloriesBurned": "سعرات محروقة",

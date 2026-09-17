@@ -1,7 +1,7 @@
 import { Droplets, Flame, Minus, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RadialBar, RadialBarChart } from 'recharts'
+import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
 
 import { AiPlanCard } from '@/components/AiPlanCard'
 import { Button } from '@/components/ui/Button'
@@ -110,6 +110,10 @@ export default function Nutrition() {
               startAngle={90}
               endAngle={-270}
             >
+              {/* Without an explicit 0-100 domain, Recharts derives the scale
+                  from this single data point and always renders a full
+                  circle no matter the actual percentage. */}
+              <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
               <RadialBar dataKey="value" cornerRadius={8} background={{ fill: 'var(--surface-2)' }} />
             </RadialBarChart>
             <div className="absolute inset-0 grid place-items-center">

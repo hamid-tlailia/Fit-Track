@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Bell, ChevronRight, Droplets, Flame, Footprints, Plus, Salad, X, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Line, LineChart, RadialBar, RadialBarChart } from 'recharts'
+import { Line, LineChart, PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
 
 import { Card } from '@/components/ui/Card'
 import { foods } from '@/data/foods'
@@ -96,7 +96,7 @@ export default function Dashboard() {
         </div>
         <Link
           to="/settings"
-          aria-label={t('nav.settings')}
+          aria-label={t('dashboard.notificationsShortcut')}
           className="h-10 w-10 shrink-0 grid place-items-center rounded-full bg-surface border border-surface-2 text-ink-soft hover:text-ink hover:border-brand-500/50 transition"
         >
           <Bell size={18} />
@@ -244,6 +244,10 @@ export default function Dashboard() {
               startAngle={90}
               endAngle={-270}
             >
+              {/* Without an explicit 0-100 domain, Recharts derives the scale
+                  from this single data point and always renders a full
+                  circle no matter the actual percentage. */}
+              <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
               <RadialBar dataKey="value" cornerRadius={8} background={{ fill: 'var(--surface-2)' }} />
             </RadialBarChart>
             <div className="absolute inset-0 grid place-items-center">

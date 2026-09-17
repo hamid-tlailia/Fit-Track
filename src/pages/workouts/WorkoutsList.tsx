@@ -1,5 +1,4 @@
-import { Camera, Dumbbell, Flame, Lock, Waves, Zap } from 'lucide-react'
-import type { ComponentType } from 'react'
+import { Camera, Lock } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -11,15 +10,8 @@ import { isPremium, useAuthStore } from '@/store/useAuthStore'
 
 const categories: (WorkoutCategory | 'all')[] = ['all', 'strength', 'hiit', 'cardio', 'mobility']
 
-// Real per-exercise cutout photography isn't something we can source here, so
-// each category gets a large, softly-lit watermark icon instead of a flat
-// gradient — still a distinct visual per workout type without needing
-// licensed stock photos.
-const categoryIcon: Record<WorkoutCategory, ComponentType<{ size?: number; strokeWidth?: number; className?: string }>> = {
-  strength: Dumbbell,
-  hiit: Zap,
-  cardio: Flame,
-  mobility: Waves,
+function workoutPhotoUrl(photoId: string): string {
+  return `https://images.unsplash.com/photo-${photoId}?w=640&h=360&fit=crop&q=60`
 }
 
 export default function WorkoutsList() {
@@ -76,7 +68,6 @@ export default function WorkoutsList() {
       <div className="mt-5 grid sm:grid-cols-2 gap-4">
         {filtered.map((workout) => {
           const locked = workout.premium && !isPremium(tier)
-          const CategoryIcon = categoryIcon[workout.category]
           return (
             <Link
               key={workout.id}
@@ -84,11 +75,15 @@ export default function WorkoutsList() {
               className="relative overflow-hidden rounded-2xl p-5 text-white min-h-[140px] flex flex-col justify-end"
               style={{ background: `linear-gradient(135deg, ${workout.gradient[0]}, ${workout.gradient[1]})` }}
             >
-              <CategoryIcon
-                size={96}
-                strokeWidth={1.5}
-                className="pointer-events-none select-none absolute -end-4 -bottom-4 text-white/15 rotate-[-12deg]"
+              <img
+                src={workoutPhotoUrl(workout.photoId)}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
               />
+              {/* Photos vary a lot in brightness/contrast — this scrim is what
+                  keeps the title/stats readable on top of any of them. */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
               {locked && (
                 <div className="absolute top-3 end-3 flex items-center gap-1 rounded-full bg-black/30 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
                   <Lock size={12} /> {t('workouts.premiumBadge')}

@@ -25,14 +25,15 @@ export function PremiumGate({
   if (unlocked) return <>{children}</>
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-brand-500/30 bg-gradient-to-br from-surface to-surface-2">
-      {/* Decorative backdrop only — absolutely positioned and out of flow, so
-          it can never stretch this card to a size the overlay text doesn't
-          actually need, which was throwing the centered content off. */}
-      <div aria-hidden className="absolute inset-0 pointer-events-none select-none opacity-30 blur-[2px]">
-        {children}
-      </div>
-      <div className="relative flex flex-col items-center justify-center gap-3 p-6 text-center">
+    <div className="relative overflow-hidden rounded-2xl border border-brand-500/30 bg-gradient-to-br from-surface to-surface-2 min-h-[230px]">
+      {/* The blurred backdrop stays in normal flow so it still sizes this
+          card correctly for tall gated content (e.g. the full-page Coach
+          chat) — an absolutely-positioned backdrop can't do that, since it's
+          taken out of flow entirely. The min-height above is what actually
+          keeps the overlay from being squeezed when the backdrop is short
+          (e.g. a one-line Settings toggle row). */}
+      <div aria-hidden className="pointer-events-none select-none opacity-30 blur-[2px]">{children}</div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
         <div className="grid h-11 w-11 place-items-center rounded-full bg-brand-500/20 text-brand-400">
           <Lock size={20} />
         </div>

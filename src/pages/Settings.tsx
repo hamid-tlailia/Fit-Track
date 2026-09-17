@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card'
 import i18n, { type SupportedLanguage, supportedLanguages } from '@/i18n'
 import { api } from '@/lib/api'
 import { getCurrentSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
-import { speak } from '@/lib/voice'
+import { loadVoices, speak } from '@/lib/voice'
 import { applyTheme, themes } from '@/lib/themes'
 import type { Units, VoiceGender } from '@/store/useAppStore'
 import { useAppStore } from '@/store/useAppStore'
@@ -63,6 +63,14 @@ export default function Settings() {
   useEffect(() => {
     if (redirectStatus) window.history.replaceState(null, '', window.location.pathname)
   }, [redirectStatus])
+
+  useEffect(() => {
+    // The voice picker needs the browser's voice list loaded before it can
+    // match a gender — without this, "Test voice" always fell back to
+    // whatever the browser's single default voice is, regardless of which
+    // gender was selected.
+    void loadVoices()
+  }, [])
 
   useEffect(() => {
     if (!isPushSupported()) return

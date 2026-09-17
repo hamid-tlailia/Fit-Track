@@ -54,6 +54,7 @@
  },
  "dashboard": {
   "greeting": "Hey {{name}} 👋",
+  "notificationsShortcut": "Notification & reminder settings",
   "subtitle": "Let's crush today's goals.",
   "caloriesToday": "Calories today",
   "caloriesBurned": "Calories burned",

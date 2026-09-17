@@ -41,4 +41,10 @@ describe('pickVoice', () => {
     const picked = pickVoice(voices, 'en', 'male')
     expect(picked?.name).toBe('DAVID')
   })
+
+  it('does not pick a "Female" voice for a male request ("female" contains "male")', () => {
+    const voices = [mockVoice('Google UK English Female', 'en-GB'), mockVoice('Google UK English Male', 'en-GB')]
+    const picked = pickVoice(voices, 'en', 'male')
+    expect(picked?.name).toBe('Google UK English Male')
+  })
 })
