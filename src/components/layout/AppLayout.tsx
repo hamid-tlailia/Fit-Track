@@ -37,7 +37,7 @@ export function AppLayout() {
   const { t } = useTranslation()
 
   return (
-    <div className="min-h-dvh bg-bg text-ink flex flex-col md:flex-row">
+    <div className="h-dvh overflow-hidden bg-bg text-ink flex flex-col md:flex-row">
       <aside className="hidden md:flex md:w-64 md:flex-col md:border-e md:border-surface-2 md:bg-surface md:p-4 md:gap-1">
         <div className="flex items-center gap-2 px-2 py-4">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
@@ -55,7 +55,14 @@ export function AppLayout() {
         </div>
       </aside>
 
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between border-b border-surface-2 bg-surface px-4 py-3">
+      {/* header/main/nav are plain flex siblings inside a viewport-locked
+          (h-dvh, overflow-hidden) shell, with `main` as the only scrolling
+          region — not `position: fixed`/`sticky` relative to a page that can
+          itself scroll. Virtual keyboards on mobile scroll the document to
+          bring a focused input into view; when there's no document scroll
+          possible in the first place, there's nothing for that to push the
+          header or nav out from under. */}
+      <header className="md:hidden shrink-0 flex items-center justify-between border-b border-surface-2 bg-surface px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
             <Dumbbell size={14} strokeWidth={2.5} />
@@ -99,11 +106,11 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">
         <Outlet />
       </main>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-surface-2 bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+      <nav className="md:hidden shrink-0 border-t border-surface-2 bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
         <div className="grid grid-cols-5">
           {mainNavItems.map(({ to, icon: Icon, labelKey, end }) => (
             <NavLink

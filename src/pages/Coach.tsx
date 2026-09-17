@@ -147,7 +147,7 @@ function CoachChat() {
   }
 
   return (
-    <div className="relative flex h-[calc(100dvh-3.75rem-5rem)] flex-col md:h-dvh">
+    <div className="relative flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-surface-2 px-5 py-4">
         <div>
           <h1 className="text-xl font-extrabold flex items-center gap-2">
@@ -265,7 +265,7 @@ function CoachChat() {
                 conversations.map((conversation) => (
                   <div
                     key={conversation.id}
-                    className={`group flex items-center gap-1 rounded-xl px-2 py-1 ${
+                    className={`flex items-center gap-1 rounded-xl px-2 py-1 ${
                       conversation.id === activeId ? 'bg-brand-500/10' : ''
                     }`}
                   >
@@ -300,21 +300,25 @@ function CoachChat() {
                         >
                           {conversation.title}
                         </button>
+                        {/* Always visible (not hover-gated) — there's no
+                            hover state on a touch screen, so a
+                            group-hover-only reveal made these unreachable
+                            on mobile. */}
                         <button
                           type="button"
                           onClick={() => startRename(conversation)}
                           aria-label={t('coach.renameChat')}
-                          className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-ink-soft opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-ink"
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-surface-2 hover:text-ink"
                         >
-                          <Pencil size={13} />
+                          <Pencil size={14} />
                         </button>
                         <button
                           type="button"
                           onClick={() => void deleteConversation(conversation)}
                           aria-label={t('coach.deleteChat')}
-                          className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-ink-soft opacity-0 transition group-hover:opacity-100 hover:bg-red-500/15 hover:text-red-400"
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-red-500/15 hover:text-red-400"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </>
                     )}
