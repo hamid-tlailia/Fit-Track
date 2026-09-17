@@ -109,6 +109,17 @@ async function migrate() {
   await sql`CREATE INDEX IF NOT EXISTS rate_limit_hits_key_time ON rate_limit_hits (bucket_key, created_at)`
 
   await sql`
+    CREATE TABLE IF NOT EXISTS conversations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS conversations_user_updated ON conversations (user_id, updated_at DESC)`
+
+  await sql`
     CREATE TABLE IF NOT EXISTS chat_messages (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -117,6 +128,20 @@ async function migrate() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+  await sql`ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE`
+  await sql`CREATE INDEX IF NOT EXISTS chat_messages_conversation ON chat_messages (conversation_id, created_at)`
+
+  // One-time backfill: messages predate the conversations table, so give
+  // each user with orphaned messages a single conversation to keep their
+  // existing history instead of losing it. A no-op once every row has a
+  // conversation_id.
+  const orphanUsers = (await sql`
+    SELECT DISTINCT user_id FROM chat_messages WHERE conversation_id IS NULL
+  `) as { user_id: string }[]
+  for (const { user_id } of orphanUsers) {
+    const [conversation] = await sql`INSERT INTO conversations (user_id, title) VALUES (${user_id}, 'Chat') RETURNING id`
+    await sql`UPDATE chat_messages SET conversation_id = ${(conversation as { id: string }).id} WHERE user_id = ${user_id} AND conversation_id IS NULL`
+  }
 
   await sql`
     CREATE TABLE IF NOT EXISTS ai_plans (

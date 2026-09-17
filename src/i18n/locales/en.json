@@ -318,6 +318,12 @@
   "send": "Send",
   "emptyState": "Say hi to start your first conversation with your AI coach.",
   "thinking": "Thinking...",
+  "newChat": "New chat",
+  "history": "History",
+  "noConversations": "No conversations yet.",
+  "renameChat": "Rename chat",
+  "deleteChat": "Delete chat",
+  "deleteConfirm": "Delete \"{{title}}\"? This can't be undone.",
   "errors": {
    "ai_not_configured": "The AI coach isn't set up yet — the app owner needs to add a free Gemini API key.",
    "ai_unavailable": "The AI coach is temporarily unavailable. Try again in a moment.",

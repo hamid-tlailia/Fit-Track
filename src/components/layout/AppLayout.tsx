@@ -55,7 +55,7 @@ export function AppLayout() {
         </div>
       </aside>
 
-      <header className="md:hidden flex items-center justify-between border-b border-surface-2 bg-surface px-4 py-3">
+      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between border-b border-surface-2 bg-surface px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
             <Dumbbell size={14} strokeWidth={2.5} />

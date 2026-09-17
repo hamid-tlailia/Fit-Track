@@ -153,3 +153,33 @@ body {
     opacity: 1;
   }
 }
+
+/* Renders the markdown emitted by markdownToHtml() inside a chat bubble
+   (coach replies) — the PDF export's own stylesheet doesn't apply here. */
+.chat-markdown p {
+  margin: 0;
+}
+.chat-markdown p + p {
+  margin-top: 0.6em;
+}
+.chat-markdown ul {
+  margin: 0.4em 0;
+  padding-inline-start: 1.2em;
+  list-style: disc;
+}
+.chat-markdown li {
+  margin: 0.2em 0;
+}
+.chat-markdown h1,
+.chat-markdown h2 {
+  font-size: 1em;
+  font-weight: 800;
+  margin: 0.6em 0 0.3em;
+}
+.chat-markdown h1:first-child,
+.chat-markdown h2:first-child {
+  margin-top: 0;
+}
+.chat-markdown strong {
+  font-weight: 700;
+}
