@@ -175,12 +175,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          aggregateBy: [
-            {
-              dataTypeName: 'com.google.step_count.delta',
-              dataSourceId: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps',
-            },
-          ],
+          // Google ignores an explicit dataSourceId here and always answers
+          // from its own merged "aggregated" derived source, so there's no
+          // point pinning one.
+          aggregateBy: [{ dataTypeName: 'com.google.step_count.delta' }],
           bucketByTime: { durationMillis: 86_400_000 },
           startTimeMillis: startOfDay,
           endTimeMillis: nowMs,
@@ -192,7 +190,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const steps =
         data.bucket?.[0]?.dataset?.[0]?.point?.reduce((sum, point) => sum + (point.value?.[0]?.intVal ?? 0), 0) ?? 0
-      console.log('fit-debug', JSON.stringify({ tzOffsetMinutes, startOfDay, nowMs, steps, raw: data }))
       return res.status(200).json({ connected: true, steps })
     } catch (err) {
       console.error('Google Fit aggregate fetch failed', err)
