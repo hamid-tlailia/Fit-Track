@@ -310,8 +310,8 @@ export default function Settings() {
                 }`}
               >
                 <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
-                    remindersOn ? 'translate-x-[22px] rtl:-translate-x-[22px]' : 'translate-x-1 rtl:-translate-x-1'
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+                    remindersOn ? 'start-[22px]' : 'start-1'
                   }`}
                 />
               </button>

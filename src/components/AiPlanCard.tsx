@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PremiumGate } from '@/components/PremiumGate'
 import { ApiError, api } from '@/lib/api'
-import { markdownToHtml, printAsPdf } from '@/lib/pdf'
+import { printAsPdf } from '@/lib/pdf'
 
 interface Plan {
   id: string
@@ -67,25 +67,14 @@ export function AiPlanCard({ type }: AiPlanCardProps) {
   return (
     <PremiumGate requires="pro" titleKey={titleKey} descriptionKey="aiPlans.errors.requires_pro">
       <Card>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-500/15 text-brand-400">
-              <Sparkles size={17} />
-            </div>
-            <div>
-              <p className="font-bold">{t(titleKey)}</p>
-              <p className="text-xs text-ink-soft">{t(descriptionKey)}</p>
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-500/15 text-brand-400">
+            <Sparkles size={17} />
           </div>
-          {plan && (
-            <button
-              onClick={handleDownload}
-              aria-label={t('aiPlans.downloadPdf')}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-ink-soft hover:text-ink"
-            >
-              <Download size={16} />
-            </button>
-          )}
+          <div>
+            <p className="font-bold">{t(titleKey)}</p>
+            <p className="text-xs text-ink-soft">{t(descriptionKey)}</p>
+          </div>
         </div>
 
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
@@ -99,13 +88,17 @@ export function AiPlanCard({ type }: AiPlanCardProps) {
           </div>
         ) : (
           <div className="mt-3">
-            <p className="text-[11px] text-ink-soft">
+            <p className="text-[11px] text-ink-soft mb-3">
               {t('aiPlans.generatedOn', { date: new Date(plan.createdAt).toLocaleDateString(lang === 'ar' ? 'ar' : 'en-US') })}
             </p>
-            <div className="ai-plan-content mt-2" dangerouslySetInnerHTML={{ __html: markdownToHtml(plan.content) }} />
-            <Button variant="secondary" className="mt-2" onClick={() => void handleGenerate()} loading={generating}>
-              <RefreshCw size={15} /> {t('aiPlans.regenerate')}
-            </Button>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={handleDownload}>
+                <Download size={15} /> {t('aiPlans.downloadPdf')}
+              </Button>
+              <Button variant="secondary" onClick={() => void handleGenerate()} loading={generating}>
+                <RefreshCw size={15} />
+              </Button>
+            </div>
           </div>
         )}
 
