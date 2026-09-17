@@ -13,6 +13,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       manifest: {
         name: 'FitForge',
         short_name: 'FitForge',
@@ -26,18 +29,11 @@ export default defineConfig({
           { src: 'favicon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         // The AI form-check page lazy-loads TensorFlow.js + pose-detection
         // (~1.5MB) on demand — don't force that download on every install.
         globIgnores: ['**/pose-detection*.js', '**/tfjs*.js', '**/dist-*.js', '**/shared-*.js'],
-        runtimeCaching: [
-          {
-            urlPattern: /\.(?:js)$/,
-            handler: 'CacheFirst',
-            options: { cacheName: 'lazy-chunks' },
-          },
-        ],
       },
     }),
   ],

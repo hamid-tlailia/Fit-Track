@@ -1,4 +1,4 @@
-import { Activity, Check, Download, LogOut, Trash2, Volume2 } from 'lucide-react'
+import { Activity, Bell, Check, Download, LogOut, Trash2, Volume2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -7,6 +7,7 @@ import { PremiumGate } from '@/components/PremiumGate'
 import { Card } from '@/components/ui/Card'
 import i18n, { type SupportedLanguage, supportedLanguages } from '@/i18n'
 import { api } from '@/lib/api'
+import { getCurrentSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
 import { speak } from '@/lib/voice'
 import { applyTheme, themes } from '@/lib/themes'
 import type { Units, VoiceGender } from '@/store/useAppStore'
@@ -42,6 +43,9 @@ export default function Settings() {
 
   const [fitConnected, setFitConnected] = useState<boolean | null>(redirectStatus === 'connected' ? true : null)
   const [fitBusy, setFitBusy] = useState(false)
+  const [remindersOn, setRemindersOn] = useState<boolean | null>(() => (isPushSupported() ? null : false))
+  const [remindersBusy, setRemindersBusy] = useState(false)
+  const [remindersError, setRemindersError] = useState<string | null>(null)
   const [fitMessage] = useState<string | null>(() => {
     if (!redirectStatus) return null
     return redirectStatus === 'connected'
@@ -59,6 +63,13 @@ export default function Settings() {
   useEffect(() => {
     if (redirectStatus) window.history.replaceState(null, '', window.location.pathname)
   }, [redirectStatus])
+
+  useEffect(() => {
+    if (!isPushSupported()) return
+    getCurrentSubscription()
+      .then((sub) => setRemindersOn(sub !== null))
+      .catch(() => setRemindersOn(false))
+  }, [])
 
   function handleTestVoice() {
     speak(t('settings.testVoiceSample'), {
@@ -106,6 +117,25 @@ export default function Settings() {
       setFitConnected(false)
     } finally {
       setFitBusy(false)
+    }
+  }
+
+  async function handleToggleReminders() {
+    setRemindersBusy(true)
+    setRemindersError(null)
+    try {
+      if (remindersOn) {
+        await unsubscribeFromPush()
+        setRemindersOn(false)
+      } else {
+        await subscribeToPush(i18n.language)
+        setRemindersOn(true)
+      }
+    } catch (err) {
+      const code = err instanceof Error ? err.message : 'unknown'
+      setRemindersError(t(`settings.remindersErrors.${code}`, { defaultValue: t('settings.remindersErrors.unknown') }))
+    } finally {
+      setRemindersBusy(false)
     }
   }
 
@@ -253,6 +283,40 @@ export default function Settings() {
               </button>
             )}
           </div>
+        </PremiumGate>
+      </Card>
+
+      <Card className="mt-4">
+        <h2 className="font-bold mb-3">{t('settings.reminders')}</h2>
+        {remindersError && <p className="mb-3 text-sm text-red-400">{remindersError}</p>}
+        <PremiumGate requires="premium" descriptionKey="settings.remindersPremiumOnly">
+          {remindersOn === false && !isPushSupported() ? (
+            <p className="text-sm text-ink-soft">{t('settings.remindersNotSupported')}</p>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500/15 text-brand-400">
+                <Bell size={18} />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{t('settings.dailyReminders')}</p>
+                <p className="text-xs text-ink-soft">{t('settings.remindersDescription')}</p>
+              </div>
+              <button
+                onClick={() => void handleToggleReminders()}
+                disabled={remindersBusy || remindersOn === null}
+                aria-label={t('settings.dailyReminders')}
+                className={`relative shrink-0 h-7 w-12 rounded-full transition disabled:opacity-50 ${
+                  remindersOn ? 'bg-brand-500' : 'bg-surface-2'
+                }`}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
+                    remindersOn ? 'translate-x-[22px] rtl:-translate-x-[22px]' : 'translate-x-1 rtl:-translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          )}
         </PremiumGate>
       </Card>
 

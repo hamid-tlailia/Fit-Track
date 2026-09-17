@@ -224,6 +224,16 @@
       "exchange_failed": "تعذّر إكمال الاتصال بـ Google Fit — حاول مرة أخرى.",
       "unknown": "حدث خطأ ما أثناء ربط Google Fit."
     },
+    "reminders": "التذكيرات",
+    "dailyReminders": "تذكيرات يومية بالذكاء الاصطناعي",
+    "remindersDescription": "إشعار واحد مخصص يوميًا، مبني على ما ينقصك اليوم.",
+    "remindersPremiumOnly": "التذكيرات اليومية بالذكاء الاصطناعي ميزة بريميوم.",
+    "remindersNotSupported": "متصفحك لا يدعم الإشعارات الفورية.",
+    "remindersErrors": {
+      "push_not_supported": "متصفحك لا يدعم الإشعارات الفورية.",
+      "permission_denied": "تم رفض إذن الإشعارات — فعّل الإشعارات لهذا الموقع من إعدادات متصفحك.",
+      "unknown": "حدث خطأ ما أثناء تفعيل التذكيرات."
+    },
     "account": "الحساب",
     "logout": "تسجيل الخروج",
     "exportData": "تصدير بياناتي",

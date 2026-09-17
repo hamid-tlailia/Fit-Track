@@ -224,6 +224,16 @@
       "exchange_failed": "Couldn't finish connecting to Google Fit — try again.",
       "unknown": "Something went wrong connecting Google Fit."
     },
+    "reminders": "Reminders",
+    "dailyReminders": "Daily AI reminders",
+    "remindersDescription": "One personalized push notification a day, based on what you're missing today.",
+    "remindersPremiumOnly": "Daily AI-powered reminders are a Premium feature.",
+    "remindersNotSupported": "Your browser doesn't support push notifications.",
+    "remindersErrors": {
+      "push_not_supported": "Your browser doesn't support push notifications.",
+      "permission_denied": "Notification permission was denied — allow notifications for this site in your browser settings.",
+      "unknown": "Something went wrong turning on reminders."
+    },
     "account": "Account",
     "logout": "Log out",
     "exportData": "Export my data",
