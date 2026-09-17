@@ -192,6 +192,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const steps =
         data.bucket?.[0]?.dataset?.[0]?.point?.reduce((sum, point) => sum + (point.value?.[0]?.intVal ?? 0), 0) ?? 0
+      console.log('fit-debug', JSON.stringify({ tzOffsetMinutes, startOfDay, nowMs, steps, raw: data }))
       return res.status(200).json({ connected: true, steps })
     } catch (err) {
       console.error('Google Fit aggregate fetch failed', err)
