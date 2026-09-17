@@ -309,6 +309,9 @@ export default function Settings() {
                 <p className="font-semibold text-sm">{t('settings.dailyReminders')}</p>
                 <p className="text-xs text-ink-soft">{t('settings.remindersDescription')}</p>
               </div>
+              {remindersBusy && (
+                <span className="h-4 w-4 shrink-0 rounded-full border-2 border-ink-soft/30 border-t-ink-soft animate-spin" />
+              )}
               <button
                 onClick={() => void handleToggleReminders()}
                 disabled={remindersBusy || remindersOn === null}

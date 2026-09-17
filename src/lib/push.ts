@@ -25,8 +25,14 @@ export async function subscribeToPush(language: string): Promise<void> {
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') throw new Error('permission_denied')
 
-  const { publicKey } = await api.get<{ publicKey: string }>('/push?action=vapid-public-key')
-  const registration = await navigator.serviceWorker.ready
+  // These don't depend on each other — running them in parallel instead of
+  // one after the other shaves a real chunk off how long the toggle sits
+  // there looking stuck, especially right after a fresh page load when the
+  // service worker hasn't finished activating yet.
+  const [{ publicKey }, registration] = await Promise.all([
+    api.get<{ publicKey: string }>('/push?action=vapid-public-key'),
+    navigator.serviceWorker.ready,
+  ])
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(publicKey),
