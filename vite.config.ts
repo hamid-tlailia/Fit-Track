@@ -12,7 +12,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'favicon-maskable.svg'],
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
@@ -27,6 +27,11 @@ export default defineConfig({
         icons: [
           { src: 'favicon.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
           { src: 'favicon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
+          // Android's install/splash-screen icon runs "any" icons through its
+          // own adaptive-icon mask too, cropping content near the edges (the
+          // dumbbell's outer bars) down to a blank-looking swatch. A dedicated
+          // maskable icon with the artwork scaled into the safe zone fixes that.
+          { src: 'favicon-maskable.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
         ],
       },
       injectManifest: {

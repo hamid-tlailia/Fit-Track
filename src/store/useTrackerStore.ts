@@ -90,8 +90,17 @@ export const useTrackerStore = create<TrackerState>()((set, get) => ({
   },
 
   addWater: async (ml) => {
-    const { totalMlToday } = await api.post<{ totalMlToday: number }>('/tracking', { resource: 'water', ml })
-    set((state) => ({ waterByDate: { ...state.waterByDate, [todayKey()]: totalMlToday } }))
+    const key = todayKey()
+    // Show the new total immediately instead of waiting on the round-trip,
+    // then reconcile with the DB's real total once it comes back.
+    set((state) => ({ waterByDate: { ...state.waterByDate, [key]: (state.waterByDate[key] ?? 0) + ml } }))
+    try {
+      const { totalMlToday } = await api.post<{ totalMlToday: number }>('/tracking', { resource: 'water', ml })
+      set((state) => ({ waterByDate: { ...state.waterByDate, [key]: totalMlToday } }))
+    } catch (err) {
+      set((state) => ({ waterByDate: { ...state.waterByDate, [key]: Math.max(0, (state.waterByDate[key] ?? ml) - ml) } }))
+      throw err
+    }
   },
 
   completeWorkout: async (workoutId, durationMin, calories) => {

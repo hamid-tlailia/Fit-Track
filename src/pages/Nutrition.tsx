@@ -32,7 +32,7 @@ export default function Nutrition() {
   const todayLog = foodLog.filter((entry) => entry.loggedAt.slice(0, 10) === key)
 
   const [foodId, setFoodId] = useState(foods[0].id)
-  const [grams, setGrams] = useState(100)
+  const [gramsText, setGramsText] = useState('100')
   const [meal, setMeal] = useState<LoggedFoodEntry['meal']>('breakfast')
   const [addingFood, setAddingFood] = useState(false)
   const [waterPending, setWaterPending] = useState(false)
@@ -74,6 +74,8 @@ export default function Nutrition() {
   const caloriesPct = Math.min(100, Math.round((totals.calories / targets.calories) * 100))
 
   async function handleAddFood() {
+    const grams = Number(gramsText)
+    if (!Number.isFinite(grams) || grams <= 0) return
     setAddingFood(true)
     try {
       await logFood({ foodId, grams, meal })
@@ -156,8 +158,8 @@ export default function Nutrition() {
           <input
             type="number"
             min={1}
-            value={grams}
-            onChange={(event) => setGrams(Number(event.target.value))}
+            value={gramsText}
+            onChange={(event) => setGramsText(event.target.value)}
             placeholder={t('nutrition.grams')}
             className="rounded-xl border border-surface-2 bg-surface-2 px-3 py-2.5 text-sm"
           />

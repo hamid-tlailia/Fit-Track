@@ -28,6 +28,7 @@ export default function Dashboard() {
   const foodLog = useTrackerStore((state) => state.foodLog)
   const waterByDate = useTrackerStore((state) => state.waterByDate)
   const weightEntries = useTrackerStore((state) => state.weightEntries)
+  const completedWorkouts = useTrackerStore((state) => state.completedWorkouts)
   const streak = useTrackerStore((state) => state.currentStreak())
   const addWater = useTrackerStore((state) => state.addWater)
 
@@ -65,6 +66,12 @@ export default function Dashboard() {
   )
   const caloriesRemaining = caloriesTarget - caloriesToday
   const caloriesPct = Math.min(100, Math.round((caloriesToday / caloriesTarget) * 100))
+
+  const caloriesBurnedToday = Math.round(
+    completedWorkouts
+      .filter((entry) => entry.dateISO.slice(0, 10) === key)
+      .reduce((sum, entry) => sum + entry.calories, 0),
+  )
 
   const suggested = workouts[0]
 
@@ -134,6 +141,12 @@ export default function Dashboard() {
           label={t('dashboard.caloriesToday')}
           primary={`${caloriesToday}`}
           suffix={`/ ${caloriesTarget} ${t('common.kcal')}`}
+        />
+        <ActivityRow
+          icon={<Flame size={18} className="text-accent" />}
+          label={t('dashboard.caloriesBurned')}
+          primary={`${caloriesBurnedToday}`}
+          suffix={t('common.kcal')}
         />
         <ActivityRow
           icon={<Droplets size={18} className="text-accent" />}

@@ -1,3 +1,4 @@
+import { Dumbbell } from 'lucide-react'
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
@@ -22,7 +23,9 @@ import { useAuthStore } from '@/store/useAuthStore'
 function SplashScreen() {
   return (
     <div className="min-h-dvh grid place-items-center bg-bg">
-      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent animate-pulse" />
+      <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)] animate-[splash-zoom_1.2s_ease-in-out_infinite]">
+        <Dumbbell size={30} strokeWidth={2.5} />
+      </div>
     </div>
   )
 }

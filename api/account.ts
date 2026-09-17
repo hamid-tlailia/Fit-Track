@@ -13,14 +13,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!user) return res.status(401).json({ error: 'Not authenticated' })
 
   if (req.method === 'PATCH') {
-    const { weightKg, heightCm, age, goal, activityLevel } = req.body ?? {}
+    const { name, weightKg, heightCm, age, goal, activityLevel, avatarUrl } = req.body ?? {}
+
+    if (name != null && (typeof name !== 'string' || !name.trim() || name.trim().length > 60)) {
+      return res.status(400).json({ error: 'Invalid name' })
+    }
+    if (avatarUrl != null && (typeof avatarUrl !== 'string' || !avatarUrl.startsWith('data:image/') || avatarUrl.length > 400_000)) {
+      return res.status(400).json({ error: 'Invalid avatar image' })
+    }
+
     const rows = await sql`
       UPDATE users SET
+        name = COALESCE(${name != null ? name.trim() : null}, name),
         weight_kg = COALESCE(${weightKg != null ? Number(weightKg) : null}, weight_kg),
         height_cm = COALESCE(${heightCm != null ? Number(heightCm) : null}, height_cm),
         age = COALESCE(${age != null ? Number(age) : null}, age),
         goal = COALESCE(${goal ?? null}, goal),
-        activity_level = COALESCE(${activityLevel ?? null}, activity_level)
+        activity_level = COALESCE(${activityLevel ?? null}, activity_level),
+        avatar_url = COALESCE(${avatarUrl ?? null}, avatar_url)
       WHERE id = ${user.id}
       RETURNING *
     `

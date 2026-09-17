@@ -37,6 +37,7 @@ async function migrate() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`
 
   await sql`
     CREATE TABLE IF NOT EXISTS sessions (

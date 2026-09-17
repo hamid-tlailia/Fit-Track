@@ -17,6 +17,7 @@ export interface AuthUser {
   age: number
   activityLevel: ActivityLevel
   subscriptionTier: SubscriptionTier
+  avatarUrl: string | null
 }
 
 interface BootstrapResponse {
@@ -56,7 +57,9 @@ interface AuthState {
   login: (payload: LoginPayload) => Promise<{ ok: true } | { ok: false; error: string }>
   logout: () => Promise<void>
   deleteAccount: () => Promise<void>
-  updateProfile: (patch: Partial<Pick<AuthUser, 'weightKg' | 'heightCm' | 'age' | 'goal' | 'activityLevel'>>) => Promise<void>
+  updateProfile: (
+    patch: Partial<Pick<AuthUser, 'name' | 'weightKg' | 'heightCm' | 'age' | 'goal' | 'activityLevel' | 'avatarUrl'>>,
+  ) => Promise<void>
   setSubscriptionTier: (tier: SubscriptionTier) => Promise<void>
 }
 

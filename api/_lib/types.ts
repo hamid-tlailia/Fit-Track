@@ -10,6 +10,7 @@ export interface UserRow {
   age: number
   activity_level: string
   subscription_tier: string
+  avatar_url: string | null
   created_at: string
 }
 
@@ -55,5 +56,6 @@ export function serializeUser(row: UserRow) {
     age: row.age,
     activityLevel: row.activity_level,
     subscriptionTier: row.subscription_tier,
+    avatarUrl: row.avatar_url,
   }
 }
