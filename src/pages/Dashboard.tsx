@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, ChevronRight, Droplets, Flame, Footprints, Plus, Salad, X, Zap } from 'lucide-react'
+import { Bell, ChevronRight, Droplets, Flame, Footprints, Plus, Salad, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Line, LineChart, PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
@@ -94,9 +94,13 @@ export default function Dashboard() {
     <div className="max-w-3xl mx-auto px-5 pt-6 pb-8 md:pt-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)] font-extrabold">
-            {initial}
-          </div>
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+          ) : (
+            <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)] font-extrabold">
+              {initial}
+            </div>
+          )}
           <div>
             <h1 className="text-lg font-extrabold leading-tight">{t('dashboard.greeting', { name: user?.name ?? '' })}</h1>
             <p className="text-ink-soft text-sm">{t('dashboard.subtitle')}</p>
@@ -275,27 +279,41 @@ export default function Dashboard() {
       </div>
 
       <div className="fixed bottom-24 end-5 md:bottom-8 z-30 flex flex-col items-end gap-2.5">
-        {fabOpen && (
-          <>
-            <FabAction to="/workouts" icon={<Zap size={16} />} label={t('dashboard.startWorkout')} onClick={() => setFabOpen(false)} />
-            <FabAction to="/nutrition" icon={<Salad size={16} />} label={t('dashboard.logFood')} onClick={() => setFabOpen(false)} />
-            <button
-              onClick={() => {
-                void addWater(250)
-                setFabOpen(false)
-              }}
-              className="flex items-center gap-2 rounded-full bg-surface border border-surface-2 pe-4 ps-3 py-2.5 text-sm font-semibold shadow-lg shadow-black/20"
-            >
-              <Droplets size={16} className="text-accent" /> {t('dashboard.addWater')}
-            </button>
-          </>
-        )}
+        <FabAction
+          to="/workouts"
+          icon={<Zap size={16} />}
+          label={t('dashboard.startWorkout')}
+          tone="brand"
+          open={fabOpen}
+          delayMs={90}
+          onClick={() => setFabOpen(false)}
+        />
+        <FabAction
+          to="/nutrition"
+          icon={<Salad size={16} />}
+          label={t('dashboard.logFood')}
+          tone="amber"
+          open={fabOpen}
+          delayMs={45}
+          onClick={() => setFabOpen(false)}
+        />
+        <button
+          onClick={() => {
+            void addWater(250)
+            setFabOpen(false)
+          }}
+          className={fabItemClassName('accent', fabOpen)}
+        >
+          <Droplets size={16} /> {t('dashboard.addWater')}
+        </button>
         <button
           onClick={() => setFabOpen((v) => !v)}
           aria-label={t('dashboard.quickActions')}
-          className="h-14 w-14 rounded-full bg-brand-500 text-[var(--ink-on-brand)] grid place-items-center shadow-[0_0_28px_-4px_var(--brand-500)] hover:brightness-110 active:brightness-95 transition"
+          className={`h-14 w-14 rounded-full bg-brand-500 text-[var(--ink-on-brand)] grid place-items-center shadow-[0_0_28px_-4px_var(--brand-500)] hover:brightness-110 active:brightness-95 transition-transform duration-300 ${
+            fabOpen ? 'rotate-45' : 'rotate-0'
+          }`}
         >
-          {fabOpen ? <X size={22} /> : <Plus size={22} />}
+          <Plus size={22} />
         </button>
       </div>
     </div>
@@ -327,14 +345,45 @@ function ActivityRow({
   )
 }
 
-function FabAction({ to, icon, label, onClick }: { to: string; icon: React.ReactNode; label: string; onClick: () => void }) {
+type FabTone = 'brand' | 'amber' | 'accent'
+
+const fabToneClasses: Record<FabTone, string> = {
+  brand: 'bg-brand-500/15 border-brand-500/40 text-brand-400',
+  amber: 'bg-amber-500/15 border-amber-500/40 text-amber-400',
+  accent: 'bg-accent/15 border-accent/40 text-accent',
+}
+
+function fabItemClassName(tone: FabTone, open: boolean): string {
+  return `flex items-center gap-2 rounded-full border pe-4 ps-3 py-2.5 text-sm font-semibold shadow-lg shadow-black/20 transition-all duration-200 ${fabToneClasses[tone]} ${
+    open ? 'opacity-100 translate-y-0 scale-100' : 'pointer-events-none opacity-0 translate-y-2 scale-90'
+  }`
+}
+
+function FabAction({
+  to,
+  icon,
+  label,
+  tone,
+  open,
+  delayMs,
+  onClick,
+}: {
+  to: string
+  icon: React.ReactNode
+  label: string
+  tone: FabTone
+  open: boolean
+  delayMs: number
+  onClick: () => void
+}) {
   return (
     <Link
       to={to}
       onClick={onClick}
-      className="flex items-center gap-2 rounded-full bg-surface border border-surface-2 pe-4 ps-3 py-2.5 text-sm font-semibold shadow-lg shadow-black/20"
+      style={{ transitionDelay: open ? `${delayMs}ms` : '0ms' }}
+      className={fabItemClassName(tone, open)}
     >
-      <span className="text-brand-400">{icon}</span> {label}
+      {icon} {label}
     </Link>
   )
 }

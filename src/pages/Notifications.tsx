@@ -2,6 +2,7 @@ import { Bell, BellOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { BackButton } from '@/components/ui/BackButton'
 import { Card } from '@/components/ui/Card'
 import { api } from '@/lib/api'
 
@@ -33,6 +34,7 @@ export default function Notifications() {
 
   return (
     <div className="max-w-lg mx-auto px-5 pt-8 pb-10 md:pt-10">
+      <BackButton />
       <h1 className="text-2xl font-extrabold flex items-center gap-2">
         <Bell size={22} className="text-brand-400" /> {t('notifications.title')}
       </h1>

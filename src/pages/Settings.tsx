@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { PremiumGate } from '@/components/PremiumGate'
+import { BackButton } from '@/components/ui/BackButton'
 import { Card } from '@/components/ui/Card'
 import i18n, { type SupportedLanguage, supportedLanguages } from '@/i18n'
 import { api } from '@/lib/api'
@@ -159,6 +160,7 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl mx-auto px-5 pt-8 pb-10 md:pt-10">
+      <BackButton />
       <h1 className="text-2xl font-extrabold">{t('settings.title')}</h1>
 
       <Card className="mt-5">

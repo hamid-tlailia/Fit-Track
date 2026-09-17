@@ -82,8 +82,10 @@ export default function WorkoutsList() {
                 className="absolute inset-0 h-full w-full object-cover"
               />
               {/* Photos vary a lot in brightness/contrast — this scrim is what
-                  keeps the title/stats readable on top of any of them. */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+                  keeps the title/stats readable on top of any of them. Tinted
+                  with the active theme's own background color (instead of
+                  flat black) so it reads as part of the current theme. */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/80 via-[var(--bg)]/30 to-transparent" />
               {locked && (
                 <div className="absolute top-3 end-3 flex items-center gap-1 rounded-full bg-black/30 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
                   <Lock size={12} /> {t('workouts.premiumBadge')}
