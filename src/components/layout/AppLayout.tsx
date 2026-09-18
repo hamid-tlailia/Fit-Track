@@ -9,7 +9,7 @@ import {
   User,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet } from 'react-router-dom'
 
@@ -36,14 +36,37 @@ const secondaryNavItems: NavItem[] = [
 
 export function AppLayout() {
   const { t } = useTranslation()
+  const shellRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     document.body.classList.add('app-shell-locked')
-    return () => document.body.classList.remove('app-shell-locked')
+
+    // On some mobile browsers (seen on MIUI/Xiaomi's keyboard in particular),
+    // opening the virtual keyboard doesn't resize `100dvh` at all — instead
+    // it *pans* the visual viewport independently of the layout viewport,
+    // which `overflow: hidden` can't stop since nothing was ever asked to
+    // scroll. The only reliable fix is to track the real visible area via
+    // the VisualViewport API and pin this shell to it directly.
+    const shell = shellRef.current
+    const vv = window.visualViewport
+    if (!shell || !vv) return () => document.body.classList.remove('app-shell-locked')
+
+    const sync = () => {
+      shell.style.height = `${vv.height}px`
+      shell.style.transform = `translateY(${vv.offsetTop}px)`
+    }
+    sync()
+    vv.addEventListener('resize', sync)
+    vv.addEventListener('scroll', sync)
+    return () => {
+      vv.removeEventListener('resize', sync)
+      vv.removeEventListener('scroll', sync)
+      document.body.classList.remove('app-shell-locked')
+    }
   }, [])
 
   return (
-    <div className="h-dvh overflow-hidden bg-bg text-ink flex flex-col md:flex-row">
+    <div ref={shellRef} className="fixed inset-0 h-dvh overflow-hidden bg-bg text-ink flex flex-col md:flex-row">
       <aside className="hidden md:flex md:w-64 md:flex-col md:border-e md:border-surface-2 md:bg-surface md:p-4 md:gap-1">
         <div className="flex items-center gap-2 px-2 py-4">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
