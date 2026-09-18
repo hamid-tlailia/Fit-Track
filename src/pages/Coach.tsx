@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PremiumGate } from '@/components/PremiumGate'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ApiError, api } from '@/lib/api'
 import { markdownToHtml } from '@/lib/pdf'
 
@@ -31,6 +32,7 @@ function CoachChat() {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  const [pendingDelete, setPendingDelete] = useState<Conversation | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -102,7 +104,7 @@ function CoachChat() {
   }
 
   async function deleteConversation(conversation: Conversation) {
-    if (!window.confirm(t('coach.deleteConfirm', { title: conversation.title }))) return
+    setPendingDelete(null)
     try {
       await api.delete(`/ai/coach?conversationId=${conversation.id}`)
     } catch {
@@ -314,7 +316,7 @@ function CoachChat() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => void deleteConversation(conversation)}
+                          onClick={() => setPendingDelete(conversation)}
                           aria-label={t('coach.deleteChat')}
                           className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-red-500/15 hover:text-red-400"
                         >
@@ -328,6 +330,18 @@ function CoachChat() {
             </div>
           </div>
         </div>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title={t('coach.deleteChat')}
+          message={t('coach.deleteConfirm', { title: pendingDelete.title })}
+          confirmLabel={t('coach.deleteChat')}
+          cancelLabel={t('common.cancel')}
+          danger
+          onConfirm={() => void deleteConversation(pendingDelete)}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </div>
   )

@@ -278,7 +278,15 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="fixed bottom-24 end-5 md:bottom-8 z-30 flex flex-col items-end gap-2.5">
+      {/* pointer-events-none when closed so the invisible pills' bounding
+          boxes (and the gaps between them) don't swallow scroll/tap gestures
+          meant for the page underneath — the toggle button opts itself back
+          in explicitly since it must stay tappable either way. */}
+      <div
+        className={`fixed bottom-24 end-5 md:bottom-8 z-30 flex flex-col items-end gap-2.5 ${
+          fabOpen ? '' : 'pointer-events-none'
+        }`}
+      >
         <FabAction
           to="/workouts"
           icon={<Zap size={16} />}
@@ -309,7 +317,7 @@ export default function Dashboard() {
         <button
           onClick={() => setFabOpen((v) => !v)}
           aria-label={t('dashboard.quickActions')}
-          className={`h-14 w-14 rounded-full bg-brand-500 text-[var(--ink-on-brand)] grid place-items-center shadow-[0_0_28px_-4px_var(--brand-500)] hover:brightness-110 active:brightness-95 transition-transform duration-300 ${
+          className={`pointer-events-auto h-14 w-14 rounded-full bg-brand-500 text-[var(--ink-on-brand)] grid place-items-center shadow-[0_0_28px_-4px_var(--brand-500)] hover:brightness-110 active:brightness-95 transition-transform duration-300 ${
             fabOpen ? 'rotate-45' : 'rotate-0'
           }`}
         >

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type ThemeId = 'energy' | 'warrior' | 'calm' | 'neon'
+export type ThemeId = 'energy' | 'warrior' | 'calm' | 'neon' | 'daylight'
 export type VoiceGender = 'male' | 'female'
 export type Units = 'metric' | 'imperial'
 export type SubscriptionTier = 'free' | 'premium' | 'pro'

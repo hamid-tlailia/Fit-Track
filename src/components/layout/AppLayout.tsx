@@ -9,6 +9,7 @@ import {
   User,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet } from 'react-router-dom'
 
@@ -35,6 +36,11 @@ const secondaryNavItems: NavItem[] = [
 
 export function AppLayout() {
   const { t } = useTranslation()
+
+  useEffect(() => {
+    document.body.classList.add('app-shell-locked')
+    return () => document.body.classList.remove('app-shell-locked')
+  }, [])
 
   return (
     <div className="h-dvh overflow-hidden bg-bg text-ink flex flex-col md:flex-row">

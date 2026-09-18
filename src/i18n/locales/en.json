@@ -80,7 +80,8 @@
    "energy": "Show up. Every rep counts.",
    "warrior": "Discipline beats motivation.",
    "calm": "Progress, not perfection.",
-   "neon": "Turn up the intensity."
+   "neon": "Turn up the intensity.",
+   "daylight": "Small steps, sunny days, real progress."
   }
  },
  "workouts": {
@@ -367,6 +368,10 @@
   "neon": {
    "name": "Neon",
    "description": "Electric pink & cyan gym vibes"
+  },
+  "daylight": {
+   "name": "Daylight",
+   "description": "Warm sunny orange on a light background for daytime use"
   }
  },
  "common": {
