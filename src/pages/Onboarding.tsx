@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import i18n from '@/i18n'
 import type { Gender, Goal } from '@/store/useAppStore'
 
@@ -28,8 +29,9 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-bg text-ink px-6 py-10">
-      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
+    <PullToRefresh className="min-h-dvh flex flex-col bg-bg text-ink overflow-y-auto">
+      <div className="min-h-dvh flex flex-col px-6 py-10">
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
         <div className="mb-8 flex items-center gap-2">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
             <Dumbbell size={20} strokeWidth={2.5} />
@@ -124,7 +126,8 @@ export default function Onboarding() {
             </Button>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </PullToRefresh>
   )
 }

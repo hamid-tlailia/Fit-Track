@@ -72,8 +72,10 @@ export default function Dashboard() {
     fetchFit()
     const id = setInterval(fetchFit, 60000)
     const onVis = () => { if (document.visibilityState === 'visible') fetchFit() }
+    const onRefresh = () => { void fetchFit() }
     document.addEventListener('visibilitychange', onVis)
-    return () => { cancelled = true; clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
+    window.addEventListener('fitforge:refresh', onRefresh)
+    return () => { cancelled = true; clearInterval(id); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('fitforge:refresh', onRefresh) }
   }, [])
 
   const isAr = i18n.language === 'ar'
