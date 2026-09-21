@@ -40,17 +40,9 @@ export function AppLayout() {
 
   useEffect(() => {
     document.body.classList.add('app-shell-locked')
-
-    // On some mobile browsers (seen on MIUI/Xiaomi's keyboard in particular),
-    // opening the virtual keyboard doesn't resize `100dvh` at all — instead
-    // it *pans* the visual viewport independently of the layout viewport,
-    // which `overflow: hidden` can't stop since nothing was ever asked to
-    // scroll. The only reliable fix is to track the real visible area via
-    // the VisualViewport API and pin this shell to it directly.
     const shell = shellRef.current
     const vv = window.visualViewport
     if (!shell || !vv) return () => document.body.classList.remove('app-shell-locked')
-
     const sync = () => {
       shell.style.height = `${vv.height}px`
       shell.style.transform = `translateY(${vv.offsetTop}px)`
@@ -67,79 +59,75 @@ export function AppLayout() {
 
   return (
     <div ref={shellRef} className="fixed inset-0 h-dvh overflow-hidden bg-bg text-ink flex flex-col md:flex-row">
-      <aside className="hidden md:flex md:w-64 md:flex-col md:border-e md:border-surface-2 md:bg-surface md:p-4 md:gap-1">
-        <div className="flex items-center gap-2 px-2 py-4">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
+      {/* Desktop sidebar — warm white */}
+      <aside className="hidden md:flex md:w-[270px] md:shrink-0 md:flex-col md:border-e md:border-[var(--line)] md:bg-surface md:p-4 md:gap-1">
+        <div className="flex items-center gap-2.5 px-2 py-4">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-[#FF8C42] grid place-items-center text-white shadow-sm">
             <Dumbbell size={18} strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-extrabold tracking-tight">{t('app.name')}</span>
+          <span className="text-[18px] font-extrabold tracking-tight">{t('app.name')}</span>
         </div>
+        <div className="h-px bg-[var(--line)] mx-2 my-1" />
         {mainNavItems.map((item) => (
           <SideNavLink key={item.labelKey} item={item} />
         ))}
         <div className="mt-auto flex flex-col gap-1">
+          <div className="h-px bg-[var(--line)] mx-2 my-2" />
           {secondaryNavItems.map((item) => (
             <SideNavLink key={item.labelKey} item={item} />
           ))}
         </div>
+        <div className="mt-3 rounded-2xl bg-gradient-to-br from-brand-500 to-[#FF8C42] p-4 text-white">
+          <p className="text-sm font-extrabold">FitForge Pro</p>
+          <p className="text-xs opacity-90 mt-1 leading-relaxed">{t('subscription.subtitle')}</p>
+        </div>
       </aside>
 
-      {/* header/main/nav are plain flex siblings inside a viewport-locked
-          (h-dvh, overflow-hidden) shell, with `main` as the only scrolling
-          region — not `position: fixed`/`sticky` relative to a page that can
-          itself scroll. Virtual keyboards on mobile scroll the document to
-          bring a focused input into view; when there's no document scroll
-          possible in the first place, there's nothing for that to push the
-          header or nav out from under. */}
-      <header className="md:hidden shrink-0 flex items-center justify-between border-b border-surface-2 bg-surface px-4 py-3">
+      {/* Mobile header — like screenshot: white, light border */}
+      <header className="md:hidden shrink-0 flex items-center justify-between bg-surface border-b border-[var(--line)] px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-brand-500 to-[#FF8C42] grid place-items-center text-white">
             <Dumbbell size={14} strokeWidth={2.5} />
           </div>
-          <span className="font-extrabold tracking-tight">{t('app.name')}</span>
+          <span className="font-extrabold tracking-tight text-[15px]">{t('app.name')}</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <NavLink
             to="/coach"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
-                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
-              }`
+              `grid h-8 w-8 place-items-center rounded-full transition-colors ${isActive ? 'bg-brand-500 text-white' : 'text-ink-soft hover:bg-surface-2'}`
             }
             aria-label={t('nav.coach')}
           >
-            <MessageCircle size={18} />
+            <MessageCircle size={16} />
           </NavLink>
           <NavLink
             to="/settings"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
-                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
-              }`
+              `grid h-8 w-8 place-items-center rounded-full transition-colors ${isActive ? 'bg-brand-500 text-white' : 'text-ink-soft hover:bg-surface-2'}`
             }
             aria-label={t('nav.settings')}
           >
-            <Settings size={18} />
+            <Settings size={16} />
           </NavLink>
           <NavLink
             to="/profile"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
-                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
-              }`
+              `grid h-8 w-8 place-items-center rounded-full transition-colors ${isActive ? 'bg-brand-500 text-white' : 'text-ink-soft hover:bg-surface-2'}`
             }
             aria-label={t('nav.profile')}
           >
-            <User size={18} />
+            <User size={16} />
           </NavLink>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto overflow-x-hidden">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden bg-bg">
         <Outlet />
       </main>
 
-      <nav className="md:hidden shrink-0 border-t border-surface-2 bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+      {/* Mobile bottom nav — like screenshot: white, shadow, 5 equal */}
+      <nav className="md:hidden shrink-0 border-t border-[var(--line)] bg-surface">
         <div className="grid grid-cols-5">
           {mainNavItems.map(({ to, icon: Icon, labelKey, end }) => (
             <NavLink
@@ -147,12 +135,12 @@ export function AppLayout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                  isActive ? 'text-brand-400' : 'text-ink-soft'
+                `flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition-colors ${
+                  isActive ? 'text-brand-500' : 'text-ink-soft'
                 }`
               }
             >
-              <Icon size={20} strokeWidth={2.25} />
+              <Icon size={18} strokeWidth={2} />
               <span>{t(`nav.${labelKey}`)}</span>
             </NavLink>
           ))}
@@ -170,12 +158,12 @@ function SideNavLink({ item }: { item: NavItem }) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-          isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2 hover:text-ink'
+        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-colors ${
+          isActive ? 'bg-brand-500 text-white shadow-sm' : 'text-ink-soft hover:bg-surface-2 hover:text-ink'
         }`
       }
     >
-      <Icon size={19} strokeWidth={2.25} />
+      <Icon size={18} strokeWidth={2.2} />
       <span>{t(`nav.${labelKey}`)}</span>
     </NavLink>
   )

@@ -1,4 +1,12 @@
-import { Check, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react'
+import {
+  Check,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+  X,
+  Send,
+} from 'lucide-react'
 import type { FormEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -20,8 +28,34 @@ interface Conversation {
   updatedAt: string
 }
 
+interface QuickAction {
+  label: string
+  prompt: string
+}
+
+function useQuickActions(): QuickAction[] {
+  const { i18n } = useTranslation()
+  const isAr = i18n.language === 'ar'
+  if (isAr) {
+    return [
+      { label: 'ابدأ خطة تمرين', prompt: 'أنشئ لي خطة تمرين أسبوعية' },
+      { label: 'سجّل السعرات', prompt: 'ساعدني في تسجيل السعرات لليوم' },
+      { label: 'اسأل سؤالاً', prompt: 'لدي سؤال عن التغذية والتمارين' },
+      { label: 'السجل', prompt: 'اعرض سجل المحادثات السابقة' },
+    ]
+  }
+  return [
+    { label: 'Start Workout Plan', prompt: 'Create a workout plan for me' },
+    { label: 'Log Calories', prompt: 'Help me log my calories for today' },
+    { label: 'Ask Question', prompt: 'I have a question about fitness and nutrition' },
+    { label: 'History', prompt: 'Show my conversation history' },
+  ]
+}
+
 function CoachChat() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isAr = i18n.language === 'ar'
+  const quickActions = useQuickActions()
   const [conversations, setConversations] = useState<Conversation[] | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -36,321 +70,228 @@ function CoachChat() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    api
-      .get<{ conversationId: string | null; messages: ChatMessage[] }>('/ai/coach')
-      .then((data) => {
-        setActiveId(data.conversationId)
-        setMessages(data.messages)
-      })
-      .catch(() => undefined)
-      .finally(() => setLoaded(true))
+    api.get<{ conversationId: string | null; messages: ChatMessage[] }>('/ai/coach')
+      .then((data) => { setActiveId(data.conversationId); setMessages(data.messages) })
+      .catch(() => undefined).finally(() => setLoaded(true))
     refreshConversations()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, sending])
+  useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, sending])
 
   function refreshConversations() {
-    api
-      .get<{ conversations: Conversation[] }>('/ai/coach?action=conversations')
-      .then((data) => setConversations(data.conversations ?? []))
-      .catch(() => undefined)
+    api.get<{ conversations: Conversation[] }>('/ai/coach?action=conversations')
+      .then((data) => setConversations(data.conversations ?? [])).catch(() => undefined)
   }
 
   async function openConversation(id: string) {
     setHistoryOpen(false)
     if (id === activeId) return
-    setActiveId(id)
-    setMessages([])
+    setActiveId(id); setMessages([])
     try {
-      const data = await api.get<{ conversationId: string | null; messages: ChatMessage[] }>(
-        `/ai/coach?conversationId=${id}`,
-      )
+      const data = await api.get<{ conversationId: string | null; messages: ChatMessage[] }>(`/ai/coach?conversationId=${id}`)
       setMessages(data.messages)
-    } catch {
-      setError(t('coach.errors.unknown'))
-    }
+    } catch { setError(t('coach.errors.unknown')) }
   }
 
   async function handleNewChat() {
     setHistoryOpen(false)
     try {
       const data = await api.post<{ conversation: Conversation }>('/ai/coach?action=new')
-      setConversations((prev) => [data.conversation, ...(prev ?? [])])
-      setActiveId(data.conversation.id)
-      setMessages([])
-    } catch {
-      setError(t('coach.errors.unknown'))
-    }
+      setConversations((prev) => [data.conversation, ...(prev ?? [])]); setActiveId(data.conversation.id); setMessages([])
+    } catch { setError(t('coach.errors.unknown')) }
   }
 
-  function startRename(conversation: Conversation) {
-    setRenamingId(conversation.id)
-    setRenameValue(conversation.title)
-  }
-
+  function startRename(conversation: Conversation) { setRenamingId(conversation.id); setRenameValue(conversation.title) }
   async function commitRename(id: string) {
-    const title = renameValue.trim()
-    setRenamingId(null)
-    if (!title) return
+    const title = renameValue.trim(); setRenamingId(null); if (!title) return
     setConversations((prev) => prev?.map((c) => (c.id === id ? { ...c, title } : c)) ?? null)
-    try {
-      await api.patch('/ai/coach?action=rename', { conversationId: id, title })
-    } catch {
-      refreshConversations()
-    }
+    try { await api.patch('/ai/coach?action=rename', { conversationId: id, title }) } catch { refreshConversations() }
   }
-
   async function deleteConversation(conversation: Conversation) {
     setPendingDelete(null)
-    try {
-      await api.delete(`/ai/coach?conversationId=${conversation.id}`)
-    } catch {
-      setError(t('coach.errors.unknown'))
-      return
-    }
+    try { await api.delete(`/ai/coach?conversationId=${conversation.id}`) } catch { setError(t('coach.errors.unknown')); return }
     const remaining = (conversations ?? []).filter((c) => c.id !== conversation.id)
     setConversations(remaining)
     if (conversation.id === activeId) {
-      if (remaining[0]) {
-        void openConversation(remaining[0].id)
-      } else {
-        setActiveId(null)
-        setMessages([])
-      }
+      if (remaining[0]) void openConversation(remaining[0].id)
+      else { setActiveId(null); setMessages([]) }
     }
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    const text = input.trim()
-    if (!text || sending) return
-    const wasNewConversation = !activeId
-    setError(null)
-    setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: text }])
-    setSending(true)
+  async function sendMessage(text: string) {
+    const trimmed = text.trim(); if (!trimmed || sending) return
+    const wasNew = !activeId
+    setError(null); setInput(''); setMessages((prev) => [...prev, { role: 'user', content: trimmed }]); setSending(true)
     try {
-      const data = await api.post<{ conversationId: string; reply: ChatMessage }>('/ai/coach', {
-        message: text,
-        conversationId: activeId,
-      })
-      setActiveId(data.conversationId)
-      setMessages((prev) => [...prev, data.reply])
-      if (wasNewConversation) refreshConversations()
+      const data = await api.post<{ conversationId: string; reply: ChatMessage }>('/ai/coach', { message: trimmed, conversationId: activeId })
+      setActiveId(data.conversationId); setMessages((prev) => [...prev, data.reply]); if (wasNew) refreshConversations()
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'unknown'
       setError(t(`coach.errors.${code}`, { defaultValue: t('coach.errors.unknown') }))
-    } finally {
-      setSending(false)
-    }
+    } finally { setSending(false) }
   }
 
+  async function handleSubmit(e: FormEvent) { e.preventDefault(); await sendMessage(input) }
+  async function handleQuick(prompt: string) { await sendMessage(prompt) }
+
+  const lastIsAssistant = messages.length > 0 && messages[messages.length - 1]?.role === 'assistant'
+  const showQuick = lastIsAssistant && !sending && loaded
+
   return (
-    <div className="relative flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-surface-2 px-5 py-4">
-        <div>
-          <h1 className="text-xl font-extrabold flex items-center gap-2">
-            <Sparkles size={20} className="text-brand-400" /> {t('coach.title')}
-          </h1>
-          <p className="text-xs text-ink-soft mt-0.5">{t('coach.disclaimer')}</p>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => void handleNewChat()}
-            aria-label={t('coach.newChat')}
-            className="grid h-9 w-9 place-items-center rounded-full text-ink-soft transition hover:bg-surface-2 hover:text-ink"
-          >
-            <Plus size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              refreshConversations()
-              setHistoryOpen(true)
-            }}
-            aria-label={t('coach.history')}
-            className="flex items-center gap-1.5 rounded-full border border-surface-2 px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-surface-2 hover:text-ink"
-          >
-            {t('coach.history')}
-          </button>
+    <div className="relative flex h-full flex-col bg-bg">
+      {/* Header like screenshot */}
+      <div className="shrink-0 border-b border-[var(--line)] bg-white">
+        <div className="max-w-[560px] mx-auto w-full flex items-center justify-between px-4 py-3.5">
+          <h1 className="text-[18px] font-black tracking-tight">{t('coach.title')}</h1>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => void handleNewChat()} aria-label={t('coach.newChat')} className="h-8 w-8 grid place-items-center rounded-full bg-white border border-[var(--line)] text-ink-soft hover:bg-surface-2">
+              <Plus size={14} />
+            </button>
+            <button onClick={() => { refreshConversations(); setHistoryOpen(true) }} className="rounded-full border border-[var(--line)] bg-white px-3 py-1.5 text-xs font-bold text-ink-soft">
+              {t('coach.history')}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-4">
-        {loaded && messages.length === 0 && (
-          <p className="text-center text-sm text-ink-soft mt-10">{t('coach.emptyState')}</p>
-        )}
-        <div className="flex flex-col gap-3">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              dir="auto"
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm text-start leading-relaxed ${
-                message.role === 'user'
-                  ? 'self-end bg-gradient-to-r from-brand-500 to-brand-600 text-[var(--ink-on-brand)]'
-                  : 'self-start bg-surface-2 text-ink'
-              }`}
-            >
-              {message.role === 'assistant' ? (
-                <div
-                  className="chat-markdown"
-                  dangerouslySetInnerHTML={{ __html: markdownToHtml(message.content) }}
-                />
-              ) : (
-                <p className="whitespace-pre-wrap">{message.content}</p>
-              )}
-            </div>
-          ))}
-          {sending && (
-            <div className="self-start rounded-2xl bg-surface-2 px-4 py-2.5 text-sm text-ink-soft">
-              {t('coach.thinking')}
+      {/* Top orange pill like screenshot: رفاق إجراءات (upper) */}
+      <div className="max-w-[560px] mx-auto w-full px-4 pt-3 flex justify-end">
+        <span className="inline-flex items-center rounded-full bg-[#FF6B2D] text-white text-xs font-bold px-3.5 py-1.5 shadow-sm">
+          {isAr ? 'رفاق إجراءات' : 'Quick Action'}
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[560px] mx-auto w-full px-4 py-4 flex flex-col gap-3">
+          {loaded && messages.length === 0 && (
+            <div className="text-center py-12">
+              <div className="mx-auto h-14 w-14 rounded-2xl bg-white border border-[var(--line)] grid place-items-center mb-3">
+                <Sparkles size={22} className="text-brand-500" />
+              </div>
+              <p className="text-sm font-bold">{t('coach.emptyState')}</p>
+              <p className="text-xs text-ink-soft mt-1">{t('coach.disclaimer')}</p>
             </div>
           )}
+
+          {messages.map((message, index) => {
+            const isUser = message.role === 'user'
+            const isLast = index === messages.length - 1
+            return (
+              <div key={index} dir="auto" className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+                {/* avatar + bubble like screenshot for assistant */}
+                {!isUser && (
+                  <div className="flex gap-2 items-start max-w-[92%]">
+                    <div className="h-7 w-7 rounded-full bg-surface-2 border border-[var(--line)] grid place-items-center shrink-0 mt-1">
+                      <Sparkles size={12} className="text-ink-soft" />
+                    </div>
+                    <div className="flex-1 rounded-2xl bg-white border border-[var(--line)] px-3.5 py-3 text-[13px] leading-6 shadow-sm">
+                      <div className="chat-markdown" dangerouslySetInnerHTML={{ __html: markdownToHtml(message.content) }} />
+                      <p className="text-[11px] text-ink-faint mt-2">19 mars 2025, 11:45 AM</p>
+                    </div>
+                  </div>
+                )}
+                {isUser && (
+                  <div className="max-w-[82%] rounded-2xl bg-[#FF6B2D] text-white px-4 py-3 text-[13px] leading-6 rounded-br-md shadow-sm">
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                )}
+
+                {isLast && !isUser && showQuick && (
+                  <div className="w-full mt-3">
+                    <div className="flex justify-end mb-2">
+                      <span className="inline-flex items-center rounded-full bg-[#FF6B2D] text-white text-xs font-bold px-3 py-1.5">
+                        {isAr ? 'رفاق Quick Action' : 'Quick Action'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {quickActions.map((qa) => (
+                        <button
+                          key={qa.label}
+                          onClick={() => void handleQuick(qa.prompt)}
+                          className="rounded-full bg-white border border-[var(--line)] px-3.5 py-2 text-xs font-bold text-ink hover:border-brand-500 hover:text-brand-500 transition"
+                        >
+                          {qa.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {sending && (
+            <div className="flex gap-2 items-start">
+              <div className="h-7 w-7 rounded-full bg-surface-2 border border-[var(--line)] grid place-items-center shrink-0">
+                <Sparkles size={12} className="text-ink-soft" />
+              </div>
+              <div className="rounded-2xl bg-white border border-[var(--line)] px-4 py-3 text-xs font-bold text-ink-soft shadow-sm flex gap-1 items-center">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-bounce" />
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-bounce [animation-delay:0.15s]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-bounce [animation-delay:0.3s]" />
+                {t('coach.thinking')}
+              </div>
+            </div>
+          )}
+          <div ref={scrollRef} />
         </div>
-        <div ref={scrollRef} />
       </div>
 
-      {error && <p className="px-5 pb-2 text-sm text-red-400">{error}</p>}
+      {error && <p className="max-w-[560px] mx-auto w-full px-4 pb-2 text-xs font-bold text-red-500">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-surface-2 p-4">
-        <input
-          dir="auto"
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder={t('coach.placeholder')}
-          className="flex-1 rounded-xl border border-surface-2 bg-surface-2 px-3.5 py-2.5 text-sm outline-none focus:border-brand-500"
-        />
-        <button
-          type="submit"
-          disabled={sending || !input.trim()}
-          className="rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-semibold text-[var(--ink-on-brand)] disabled:opacity-50"
-        >
-          {t('coach.send')}
-        </button>
-      </form>
+      <div className="shrink-0 border-t border-[var(--line)] bg-white">
+        <form onSubmit={handleSubmit} className="max-w-[560px] mx-auto w-full px-4 py-3 flex gap-2">
+          <input
+            dir="auto"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={t('coach.placeholder')}
+            className="flex-1 rounded-full border border-[var(--line)] bg-surface-2 px-4 py-2.5 text-sm outline-none focus:border-brand-500 placeholder:text-ink-faint"
+          />
+          <button type="submit" disabled={sending || !input.trim()} className="h-10 w-10 grid place-items-center rounded-full bg-[#FF6B2D] text-white disabled:opacity-40 shrink-0">
+            <Send size={16} className="rtl:rotate-180 ms-0.5" />
+          </button>
+        </form>
+      </div>
 
       {historyOpen && (
         <div className="absolute inset-0 z-50 flex">
-          <button
-            type="button"
-            aria-label={t('common.close')}
-            onClick={() => setHistoryOpen(false)}
-            className="flex-1 bg-black/50"
-          />
-          <div className="flex h-full w-72 max-w-[80%] flex-col border-s border-surface-2 bg-surface">
-            <div className="flex items-center justify-between border-b border-surface-2 p-4">
-              <h2 className="font-bold text-sm">{t('coach.history')}</h2>
-              <button
-                type="button"
-                onClick={() => setHistoryOpen(false)}
-                aria-label={t('common.close')}
-                className="grid h-8 w-8 place-items-center rounded-full text-ink-soft hover:bg-surface-2 hover:text-ink"
-              >
-                <X size={16} />
-              </button>
+          <button type="button" aria-label={t('common.close')} onClick={() => setHistoryOpen(false)} className="flex-1 bg-black/40 backdrop-blur-sm" />
+          <div className="w-[320px] max-w-[82%] bg-white border-s border-[var(--line)] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--line)]">
+              <h2 className="font-black text-sm">{t('coach.history')}</h2>
+              <button onClick={() => setHistoryOpen(false)} className="h-8 w-8 grid place-items-center rounded-full border border-[var(--line)]"><X size={14} /></button>
             </div>
-            <button
-              type="button"
-              onClick={() => void handleNewChat()}
-              className="mx-4 mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-brand-500/15 px-3 py-2.5 text-sm font-semibold text-brand-400"
-            >
-              <Plus size={15} /> {t('coach.newChat')}
+            <button onClick={() => void handleNewChat()} className="m-4 rounded-full bg-brand-500 text-white py-2.5 text-sm font-bold flex items-center justify-center gap-2">
+              <Plus size={14} /> {t('coach.newChat')}
             </button>
-            <div className="flex-1 overflow-y-auto p-2">
-              {conversations === null ? null : conversations.length === 0 ? (
-                <p className="p-3 text-center text-xs text-ink-soft">{t('coach.noConversations')}</p>
-              ) : (
-                conversations.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    className={`flex items-center gap-1 rounded-xl px-2 py-1 ${
-                      conversation.id === activeId ? 'bg-brand-500/10' : ''
-                    }`}
-                  >
-                    {renamingId === conversation.id ? (
-                      <>
-                        <input
-                          dir="auto"
-                          autoFocus
-                          value={renameValue}
-                          onChange={(event) => setRenameValue(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter') void commitRename(conversation.id)
-                            if (event.key === 'Escape') setRenamingId(null)
-                          }}
-                          className="flex-1 rounded-lg border border-brand-500/50 bg-surface-2 px-2 py-1.5 text-sm outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => void commitRename(conversation.id)}
-                          aria-label={t('common.save')}
-                          className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-brand-400 hover:bg-surface-2"
-                        >
-                          <Check size={14} />
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => void openConversation(conversation.id)}
-                          className="flex-1 truncate rounded-lg px-2 py-2 text-start text-sm font-medium hover:bg-surface-2"
-                        >
-                          {conversation.title}
-                        </button>
-                        {/* Always visible (not hover-gated) — there's no
-                            hover state on a touch screen, so a
-                            group-hover-only reveal made these unreachable
-                            on mobile. */}
-                        <button
-                          type="button"
-                          onClick={() => startRename(conversation)}
-                          aria-label={t('coach.renameChat')}
-                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-surface-2 hover:text-ink"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPendingDelete(conversation)}
-                          aria-label={t('coach.deleteChat')}
-                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-red-500/15 hover:text-red-400"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                ))
-              )}
+            <div className="flex-1 overflow-auto p-2">
+              {conversations?.length === 0 ? <p className="text-xs text-ink-soft text-center py-6">{t('coach.noConversations')}</p> : conversations?.map((c) => (
+                <div key={c.id} className={`flex items-center gap-1 rounded-xl px-2 py-1 ${c.id === activeId ? 'bg-[#FFF0DD]' : ''}`}>
+                  {renamingId === c.id ? (
+                    <>
+                      <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void commitRename(c.id); if (e.key === 'Escape') setRenamingId(null) }} className="flex-1 rounded-full border border-brand-500 px-3 py-1.5 text-sm" />
+                      <button onClick={() => void commitRename(c.id)} className="h-7 w-7 grid place-items-center rounded-full bg-brand-500 text-white"><Check size={12} /></button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => void openConversation(c.id)} className="flex-1 text-start truncate px-2 py-2 text-sm font-semibold">{c.title}</button>
+                      <button onClick={() => startRename(c)} className="h-7 w-7 grid place-items-center rounded-full hover:bg-surface-2"><Pencil size={12} /></button>
+                      <button onClick={() => setPendingDelete(c)} className="h-7 w-7 grid place-items-center rounded-full hover:bg-red-50 text-ink-soft hover:text-red-500"><Trash2 size={12} /></button>
+                    </>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {pendingDelete && (
-        <ConfirmDialog
-          title={t('coach.deleteChat')}
-          message={t('coach.deleteConfirm', { title: pendingDelete.title })}
-          confirmLabel={t('coach.deleteChat')}
-          cancelLabel={t('common.cancel')}
-          danger
-          onConfirm={() => void deleteConversation(pendingDelete)}
-          onCancel={() => setPendingDelete(null)}
-        />
-      )}
+      {pendingDelete && <ConfirmDialog title={t('coach.deleteChat')} message={t('coach.deleteConfirm', { title: pendingDelete.title })} confirmLabel={t('coach.deleteChat')} cancelLabel={t('common.cancel')} danger onConfirm={() => void deleteConversation(pendingDelete)} onCancel={() => setPendingDelete(null)} />}
     </div>
   )
 }
 
 export default function Coach() {
-  return (
-    <PremiumGate requires="premium">
-      <CoachChat />
-    </PremiumGate>
-  )
+  return <PremiumGate requires="premium"><CoachChat /></PremiumGate>
 }
