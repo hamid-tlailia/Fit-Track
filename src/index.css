@@ -174,8 +174,4 @@ body { transition: background-color .2s, color .2s; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
-.home-fab { left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
-@media (min-width: 768px) {
-  .home-fab { left: calc(50% + 143px); bottom: 24px; }
-  [dir="rtl"] .home-fab { left: calc(50% - 143px); }
-}
+

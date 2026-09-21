@@ -236,11 +236,11 @@ function CoachChat() {
         <form onSubmit={handleSubmit} className="max-w-[560px] mx-auto w-full px-4 py-3 flex gap-2">
           <input
             maxLength={8000}
-            dir="auto"
+            dir={isAr ? 'rtl' : 'ltr'}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t('coach.placeholder')}
-            className="flex-1 rounded-full border border-[var(--line)] bg-surface-2 px-4 py-2.5 text-sm outline-none focus:border-brand-500 placeholder:text-ink-faint"
+            className={`flex-1 rounded-full border border-[var(--line)] bg-surface-2 px-4 py-2.5 text-sm outline-none focus:border-brand-500 placeholder:text-ink-faint ${isAr ? 'text-right placeholder:text-right' : 'text-left placeholder:text-left'}`}
           />
           <button type="submit" aria-label={t('coach.send')} disabled={sending || !loaded || !input.trim()} className="h-10 w-10 grid place-items-center rounded-full bg-brand-500 text-white disabled:opacity-40 shrink-0">
             <Send size={16} className="rtl:rotate-180 ms-0.5" />
@@ -290,8 +290,12 @@ function CoachChat() {
 
 export default function Coach() {
   const tier = useAuthStore((state) => state.user?.subscriptionTier ?? 'free')
-  return <>
-    {tier === 'free' && <div className="max-w-[560px] mx-auto px-4 pt-4"><BackButton /></div>}
-    <PremiumGate requires="premium"><CoachChat /></PremiumGate>
-  </>
+  return (
+    <div className="h-full min-h-0 flex flex-col">
+      {tier === 'free' && <div className="max-w-[560px] mx-auto px-4 pt-4 shrink-0"><BackButton /></div>}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <PremiumGate requires="premium"><CoachChat /></PremiumGate>
+      </div>
+    </div>
+  )
 }
