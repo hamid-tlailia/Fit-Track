@@ -330,7 +330,9 @@
    "ai_unavailable": "The AI coach is temporarily unavailable. Try again in a moment.",
    "rate_limited": "You've sent a lot of messages — take a short break and try again soon.",
    "unknown": "Something went wrong sending that message."
-  }
+  },
+  "quickActionsTitle": "Quick actions",
+  "quickActionHint": "Try a quick action"
  },
  "aiPlans": {
   "nutritionTitle": "AI Nutrition Plan",

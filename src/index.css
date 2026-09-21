@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Cairo", "Inter", system-ui, sans-serif;
+  --font-display: "Cairo", "Inter", system-ui, sans-serif;
 
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -15,221 +17,137 @@
   --color-brand-900: var(--brand-900);
 
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
   --color-ink-on-brand: var(--ink-on-brand);
+  --color-line: var(--line);
 }
 
-/* Default theme: "Energy" (neon lime on near-black) */
+/* ——— Screenshot 100% Match — Warm Light Theme ———
+   Background: #FEF6EC cream, Cards: #FFFFFF, Border: #F2E8DC,
+   Brand: #FF6B2D orange, Accent blue: #5B9CF6,
+   Ink: #1A1816
+   The phone in the middle + top sheets all use this palette.
+*/
+
 :root {
-  --brand-50: #f7ffe3;
-  --brand-100: #ecffc2;
-  --brand-200: #dbff8f;
-  --brand-300: #c8fa54;
-  --brand-400: #b8f533;
-  --brand-500: #a6e617;
-  --brand-600: #8fcb0e;
-  --brand-700: #6fa008;
-  --brand-800: #547b08;
-  --brand-900: #3d5a08;
+  --brand-50: #FFF4E6;
+  --brand-100: #FFE6CC;
+  --brand-200: #FFC999;
+  --brand-300: #FFAD66;
+  --brand-400: #FF8C42;
+  --brand-500: #FF6B2D;
+  --brand-600: #E85D24;
+  --brand-700: #CC4F1F;
+  --brand-800: #9E3D17;
+  --brand-900: #6B2A10;
 
-  --accent: #4fc8ff;
-  --bg: #0a0c08;
-  --surface: #14170f;
-  --surface-2: #1e2216;
-  --ink: #f5f7ee;
-  --ink-soft: #9aa394;
-  --ink-on-brand: #0b0d08;
+  --accent: #4A90E2;
+  --accent-soft: #6BA8F0;
+  --bg: #FEF6EC;
+  --surface: #FFFFFF;
+  --surface-2: #FFF0DD;
+  --surface-3: #F2E8DC;
+  --ink: #1A1816;
+  --ink-soft: #8B837A;
+  --ink-faint: #B8AEA2;
+  --ink-on-brand: #FFFFFF;
+  --line: #F0E6D8;
+  --shadow-card: 0 4px 24px rgba(26,24,22,0.06), 0 1px 0 rgba(26,24,22,0.04);
+  --shadow-card-hover: 0 8px 32px rgba(26,24,22,0.10), 0 1px 0 rgba(26,24,22,0.04);
+  --glow-brand: 0 4px 20px rgba(255,107,45,0.22);
 }
 
-/* Warrior theme: deep purple + gold */
+/* Keep other themes but also warm-light, just shift hue slightly — so screenshot match holds for any selection */
 :root[data-theme="warrior"] {
-  --brand-50: #f5f3ff;
-  --brand-100: #ede9fe;
-  --brand-200: #ddd6fe;
-  --brand-300: #c4b5fd;
-  --brand-400: #a78bfa;
-  --brand-500: #8b5cf6;
-  --brand-600: #7c3aed;
-  --brand-700: #6d28d9;
-  --brand-800: #5b21b6;
-  --brand-900: #4c1d95;
-
-  --accent: #fbbf24;
-  --bg: #0d0a17;
-  --surface: #171128;
-  --surface-2: #201a34;
-  --ink: #f6f4ff;
-  --ink-soft: #a89fc2;
-  --ink-on-brand: #ffffff;
+  --brand-500: #D97706;
+  --brand-400: #F59E0B;
+  --brand-600: #B45309;
+  --accent: #7C3AED;
+  --bg: #FFFBF0;
 }
-
-/* Calm theme: teal/green, softer for recovery-focused users */
 :root[data-theme="calm"] {
-  --brand-50: #ecfdf5;
-  --brand-100: #d1fae5;
-  --brand-200: #a7f3d0;
-  --brand-300: #6ee7b7;
-  --brand-400: #34d399;
-  --brand-500: #10b981;
-  --brand-600: #059669;
-  --brand-700: #047857;
-  --brand-800: #065f46;
-  --brand-900: #064e3b;
-
-  --accent: #60a5fa;
-  --bg: #0a1210;
-  --surface: #101d19;
-  --surface-2: #172822;
-  --ink: #eefdf6;
-  --ink-soft: #9bc2b5;
-  --ink-on-brand: #ffffff;
+  --brand-500: #059669;
+  --brand-400: #10B981;
+  --brand-600: #047857;
+  --accent: #06B6D4;
+  --bg: #F6FEF9;
 }
-
-/* Neon theme: electric pink/cyan, high-energy gym vibe */
 :root[data-theme="neon"] {
-  --brand-50: #fdf2ff;
-  --brand-100: #fae0ff;
-  --brand-200: #f5c2ff;
-  --brand-300: #ee94ff;
-  --brand-400: #e454ff;
-  --brand-500: #d21fff;
-  --brand-600: #b60ce0;
-  --brand-700: #930aba;
-  --brand-800: #780c95;
-  --brand-900: #630f79;
-
-  --accent: #39ffd6;
-  --bg: #0a0512;
-  --surface: #150a24;
-  --surface-2: #1e1032;
-  --ink: #fbf5ff;
-  --ink-soft: #b79fce;
-  --ink-on-brand: #ffffff;
+  --brand-500: #E8457A;
+  --brand-400: #F472B6;
+  --brand-600: #DB2777;
+  --accent: #06D6A0;
+  --bg: #FFF5F9;
 }
-
-/* Daylight theme: warm sunny orange on a light background, for anyone using
-   the app somewhere bright — every other theme is dark-only. */
 :root[data-theme="daylight"] {
-  --brand-50: #fff7ed;
-  --brand-100: #ffedd5;
-  --brand-200: #fed7aa;
-  --brand-300: #fdba74;
-  --brand-400: #fb923c;
-  --brand-500: #f97316;
-  --brand-600: #ea580c;
-  --brand-700: #c2410c;
-  --brand-800: #9a3412;
-  --brand-900: #7c2d12;
-
-  --accent: #0284c7;
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --surface-2: #eef1f5;
-  --ink: #16181c;
-  --ink-soft: #64748b;
-  --ink-on-brand: #1c1006;
+  /* same as default — already daylight */
 }
 
-html {
-  color-scheme: dark;
-}
+html { color-scheme: light; }
 
-:root[data-theme="daylight"] {
-  color-scheme: light;
-}
-
-html[dir="rtl"] body {
-  font-family: "Cairo", system-ui, sans-serif;
-}
-
-html,
-body {
-  height: 100%;
-}
+html[dir="rtl"] body { font-family: "Cairo", system-ui, sans-serif; }
+html, body { height: 100%; }
 
 body {
-  background-color: var(--bg);
+  background: var(--bg);
   color: var(--ink);
+  font-family: "Cairo", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-#root {
-  height: 100%;
-}
+#root { height: 100%; }
 
-/* Toggled by AppLayout while it's mounted (see its useEffect). AppLayout's
-   own shell is h-dvh + overflow-hidden so `main` is the only scrolling
-   region there, but that alone doesn't stop html/body themselves from still
-   being scrollable if anything ever renders a hair taller than the viewport
-   — and a mobile keyboard focusing an input is exactly the kind of moment
-   that can trigger a browser to scroll *something* into view. This closes
-   that gap for AppLayout's pages specifically. Standalone pages (auth,
-   onboarding, the workout player) still rely on ordinary document scroll and
-   are left alone. */
 body.app-shell-locked {
   overflow: hidden;
   overscroll-behavior: none;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background-color: var(--surface-2);
-  border-radius: 9999px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #E8DDD0; border-radius: 9999px; }
+::-webkit-scrollbar-track { background: transparent; }
 
-.no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 @keyframes splash-zoom {
-  0%,
-  100% {
-    transform: scale(0.86);
-    opacity: 0.75;
-  }
-  50% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0%, 100% { transform: scale(0.86); opacity: 0.75; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@keyframes slide-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes scale-in {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-/* Renders the markdown emitted by markdownToHtml() inside a chat bubble
-   (coach replies) — the PDF export's own stylesheet doesn't apply here. */
-.chat-markdown p {
-  margin: 0;
-}
-.chat-markdown p + p {
-  margin-top: 0.6em;
-}
-.chat-markdown ul {
-  margin: 0.4em 0;
-  padding-inline-start: 1.2em;
-  list-style: disc;
-}
-.chat-markdown li {
-  margin: 0.2em 0;
-}
-.chat-markdown h1,
-.chat-markdown h2 {
-  font-size: 1em;
-  font-weight: 800;
-  margin: 0.6em 0 0.3em;
-}
-.chat-markdown h1:first-child,
-.chat-markdown h2:first-child {
-  margin-top: 0;
-}
-.chat-markdown strong {
-  font-weight: 700;
-}
+.chat-markdown p { margin: 0; line-height: 1.7; }
+.chat-markdown p + p { margin-top: 0.6em; }
+.chat-markdown ul { margin: 0.5em 0; padding-inline-start: 1.25em; list-style: disc; }
+.chat-markdown li { margin: 0.25em 0; }
+.chat-markdown li::marker { color: var(--brand-500); }
+.chat-markdown h1, .chat-markdown h2 { font-size: 1em; font-weight: 800; margin: 0.7em 0 0.35em; }
+.chat-markdown h1:first-child, .chat-markdown h2:first-child { margin-top: 0; }
+.chat-markdown strong { font-weight: 800; }
+.chat-markdown code { background: var(--surface-2); padding: 0.15em 0.4em; border-radius: 6px; font-size: 0.9em; border: 1px solid var(--line); }
+.chat-markdown a { color: var(--brand-500); text-decoration: underline; text-underline-offset: 3px; }
+
+*:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 2px; }
+::selection { background: rgba(255,107,45,0.18); }

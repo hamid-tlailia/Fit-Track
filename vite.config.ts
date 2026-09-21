@@ -7,6 +7,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: '0.0.0.0',
+    allowedHosts: true,
+    hmr: { host: 'localhost' },
+    cors: true,
+  },
   plugins: [
     react(),
     tailwindcss(),
