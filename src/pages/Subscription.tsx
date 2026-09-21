@@ -1,4 +1,5 @@
-import { Check, Crown, Sparkles, Zap } from 'lucide-react'
+import { Check, Crown, Sparkles, Zap, LoaderCircle } from 'lucide-react'
+import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Card } from '@/components/ui/Card'
@@ -18,6 +19,18 @@ export default function Subscription() {
   const tier = useAuthStore((state) => state.user?.subscriptionTier ?? 'free')
   const setSubscriptionTier = useAuthStore((state) => state.setSubscriptionTier)
 
+  const [activating, setActivating] = useState<SubscriptionTier | null>(null)
+  const [error, setError] = useState(false)
+  const busy = useRef(false)
+  async function activate(plan: SubscriptionTier) {
+    if (busy.current) return
+    busy.current = true
+    setActivating(plan); setError(false)
+    try { await setSubscriptionTier(plan) }
+    catch { setError(true) }
+    finally { busy.current = false; setActivating(null) }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-5 pt-8 pb-10 md:pt-10">
       <h1 className="text-2xl font-extrabold">{t('subscription.title')}</h1>
@@ -26,6 +39,7 @@ export default function Subscription() {
         {t('subscription.demoNotice')}
       </p>
 
+      {error && <p role="alert" className="mt-3 text-sm text-red-500">{t('subscription.activationError')}</p>}
       <div className="mt-6 grid md:grid-cols-3 gap-4">
         {planOrder.map((plan) => {
           const isCurrent = plan === tier
@@ -49,6 +63,7 @@ export default function Subscription() {
                   <p className="text-sm text-ink-soft">
                     {t(`subscription.plans.${plan}.price`)}
                     {plan !== 'free' && t('subscription.month')}
+                    <span className="block mt-1 text-xs font-bold text-brand-500">{t('subscription.freeTrial')}</span>
                   </p>
                 </div>
               </div>
@@ -63,15 +78,17 @@ export default function Subscription() {
               </ul>
 
               <button
-                onClick={() => setSubscriptionTier(plan)}
-                disabled={isCurrent}
-                className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                onClick={() => void activate(plan)}
+                disabled={isCurrent || activating !== null}
+                aria-busy={activating === plan}
+                className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60 ${
                   isCurrent
                     ? 'bg-surface-2 text-ink-soft cursor-default'
                     : 'bg-gradient-to-r from-brand-500 to-brand-600 text-[var(--ink-on-brand)] hover:brightness-110'
                 }`}
               >
-                {isCurrent ? t('subscription.active') : t('subscription.choose')}
+                {activating === plan && <LoaderCircle size={16} className="animate-spin" />}
+                {activating === plan ? t('subscription.activating') : isCurrent ? t('subscription.active') : t('subscription.choose')}
               </button>
             </Card>
           )

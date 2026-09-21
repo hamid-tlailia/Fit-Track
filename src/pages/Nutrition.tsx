@@ -104,7 +104,7 @@ export default function Nutrition() {
       <h1 className="text-[22px] font-black tracking-tight">{t('nutrition.title')}</h1>
 
       {/* Calories card like screenshot */}
-      <div className="mt-4 rounded-[24px] bg-white border border-[var(--line)] p-5 shadow-sm">
+      <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] p-5 shadow-sm">
         <p className="text-sm font-extrabold">{t('nutrition.calories')}</p>
         <div className="mt-4 flex justify-center">
           <div className="relative h-[160px] w-[160px]">
@@ -122,7 +122,7 @@ export default function Nutrition() {
               endAngle={-270}
             >
               <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-              <RadialBar dataKey="value" cornerRadius={999} background={{ fill: '#FFF0DD' }} />
+              <RadialBar dataKey="value" cornerRadius={999} background={{ fill: 'var(--surface-2)' }} />
             </RadialBarChart>
             {/* second ring for carbs/fat simulation */}
             <div className="absolute inset-0">
@@ -158,7 +158,7 @@ export default function Nutrition() {
             <div className="absolute inset-0 grid place-items-center text-center">
               <div>
                 <p className="text-[28px] font-black leading-none tracking-tight">{countdown}</p>
-                <p className="text-xs font-bold text-ink-soft mt-1">Countdown</p>
+                <p className="text-xs font-bold text-ink-soft mt-1">{t('nutrition.remaining')}</p>
               </div>
             </div>
           </div>
@@ -171,9 +171,9 @@ export default function Nutrition() {
         </div>
 
         <div className="mt-5 flex items-center justify-between rounded-2xl bg-surface-2 border border-[var(--line)] px-4 py-3">
-          <p className="text-sm font-bold flex items-center gap-2">💧 {t('nutrition.water')} {(waterMl / 1000).toFixed(1)}L</p>
+          <p className="text-sm font-bold flex items-center gap-2">💧 {t('nutrition.water')} {(waterMl / 1000).toFixed(2)} {t('common.liter')}</p>
           <div className="flex gap-2">
-            <button onClick={() => void handleAddWater(-250)} disabled={waterPending} className="h-8 w-8 rounded-full bg-white border border-[var(--line)] grid place-items-center">
+            <button onClick={() => void handleAddWater(-250)} disabled={waterPending} className="h-8 w-8 rounded-full bg-surface border border-[var(--line)] grid place-items-center">
               <Minus size={14} />
             </button>
             <button onClick={() => void handleAddWater(250)} disabled={waterPending} className="h-8 w-8 rounded-full bg-brand-500 text-white grid place-items-center">
@@ -185,8 +185,8 @@ export default function Nutrition() {
 
       {/* Food input like screenshot */}
       <div className="mt-5">
-        <h2 className="text-sm font-extrabold">Food input</h2>
-        <div className="mt-3 rounded-[24px] bg-white border border-[var(--line)] p-4 shadow-sm">
+        <h2 className="text-sm font-extrabold">{t('nutrition.addFood')}</h2>
+        <div className="mt-3 rounded-[24px] bg-surface border border-[var(--line)] p-4 shadow-sm">
           <div className="flex gap-2">
             <div className="flex-1 relative">
               <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-ink-faint" />
@@ -197,7 +197,7 @@ export default function Nutrition() {
                 className="w-full rounded-full border border-[var(--line)] bg-surface-2 ps-9 pe-3 py-2.5 text-sm outline-none focus:border-brand-500"
               />
               {search && (
-                <div className="absolute top-full mt-2 w-full rounded-2xl bg-white border border-[var(--line)] shadow-lg max-h-40 overflow-auto z-10">
+                <div className="absolute top-full mt-2 w-full rounded-2xl bg-surface border border-[var(--line)] shadow-lg max-h-40 overflow-auto z-10">
                   {foodOptions.flatMap((g) => g.options.slice(0, 3)).map((opt) => (
                     <button key={opt.value} onClick={() => { setFoodId(opt.value); setSearch('') }} className="w-full text-start px-3 py-2 text-sm hover:bg-surface-2">
                       {opt.label}
@@ -240,11 +240,11 @@ export default function Nutrition() {
             const food = foods.find((f) => f.id === entry.foodId)
             if (!food) return null
             return (
-              <li key={entry.id} className="flex items-center justify-between rounded-2xl border border-[var(--line)] bg-white p-3.5">
+              <li key={entry.id} className="flex items-center justify-between rounded-2xl border border-[var(--line)] bg-surface p-3.5">
                 <div>
                   <p className="text-sm font-bold">{isAr ? food.nameAr : food.nameEn}</p>
                   <p className="text-xs text-ink-soft">
-                    {entry.grams}g · {t(`nutrition.meals.${entry.meal}`)} · {Math.round((food.kcalPer100g * entry.grams) / 100)} {t('common.kcal')}
+                    {entry.grams} {t('common.grams')} · {t(`nutrition.meals.${entry.meal}`)} · {Math.round((food.kcalPer100g * entry.grams) / 100)} {t('common.kcal')}
                   </p>
                 </div>
                 <button onClick={() => void removeFoodEntry(entry.id)} className="h-8 w-8 grid place-items-center rounded-full hover:bg-surface-2 text-ink-soft">
@@ -260,11 +260,12 @@ export default function Nutrition() {
 }
 
 function MacroStrip({ label, value, target, pct, color }: { label: string; value: number; target: number; pct: number; color: string }) {
+  const { t } = useTranslation()
   return (
     <div>
       <div className="flex justify-between text-xs font-bold">
         <span>{label}</span>
-        <span className="text-ink-soft">{value} / {target} g</span>
+        <span className="text-ink-soft">{value} / {target} {t('common.grams')}</span>
       </div>
       <div className="mt-1.5 h-2 rounded-full bg-surface-2 overflow-hidden">
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />

@@ -1,3 +1,4 @@
+import { aggregateTotal, averageHeartRate, type FitAggregate } from './_lib/fitData.js'
 import { randomBytes } from 'node:crypto'
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
@@ -7,7 +8,7 @@ import { getUserFromRequest } from './_lib/auth.js'
 import { ensureSchema, sql } from './_lib/db.js'
 
 const STATE_COOKIE = 'fitforge_fit_state'
-const SCOPE = 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read'
+const SCOPE = 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read https://www.googleapis.com/auth/fitness.heart_rate.read https://www.googleapis.com/auth/fitness.location.read'
 
 interface FitTokenRow {
   access_token: string
@@ -160,13 +161,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const tzOffsetMinutes = Number(req.query.tzOffset) || 0
+    const offset = Number(req.query.tzOffset) || 0
+    const tzOffsetMinutes = Number.isFinite(offset) ? Math.max(-840, Math.min(840, offset)) : 0
     const nowMs = Date.now()
     const localMs = nowMs - tzOffsetMinutes * 60_000
     const startOfDay = Math.floor(localMs / 86_400_000) * 86_400_000 + tzOffsetMinutes * 60_000
     try {
       const aggRes = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
         method: 'POST',
+        signal: AbortSignal.timeout(10_000),
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           aggregateBy: [
@@ -179,38 +182,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }),
       })
       if (!aggRes.ok) throw new Error(`Fitness API error: ${aggRes.status}`)
-      const data = (await aggRes.json()) as {
-        bucket?: {
-          dataset?: {
-            dataSourceId?: string
-            point?: { value?: { intVal?: number; fpVal?: number }[] }[]
-          }[]
-        }[]
+      const data = await aggRes.json() as FitAggregate
+      const steps = aggregateTotal(data, 0)
+      const calories = aggregateTotal(data, 1)
+      // Optional scopes must not break steps/calories for existing connections.
+      async function optionalMetric(type: string): Promise<FitAggregate | null> {
+        try {
+          const response = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+            method: 'POST', signal: AbortSignal.timeout(8_000),
+            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ aggregateBy: [{ dataTypeName: type }], bucketByTime: { durationMillis: 86_400_000 }, startTimeMillis: startOfDay, endTimeMillis: nowMs }),
+          })
+          return response.ok ? await response.json() as FitAggregate : null
+        } catch { return null }
       }
-      const bucket = data.bucket?.[0]
-      let steps = 0
-      let caloriesBurned = 0
-      if (bucket?.dataset) {
-        for (const ds of bucket.dataset) {
-          const pts = ds.point ?? []
-          if (ds.dataSourceId?.includes('step_count')) {
-            steps = pts.reduce((sum, point) => sum + (point.value?.[0]?.intVal ?? 0), 0)
-          } else if (ds.dataSourceId?.includes('calories')) {
-            caloriesBurned = pts.reduce((sum, point) => sum + (point.value?.[0]?.fpVal ?? point.value?.[0]?.intVal ?? 0), 0)
-          } else {
-            // Fallback: Google may not include dataSourceId, so infer by dataset index
-            // dataset[0] is steps, dataset[1] is calories when requested in that order
-          }
-        }
-        // Fallback parsing if dataSourceId not helpful
-        if (steps === 0 && bucket.dataset[0]?.point) {
-          steps = bucket.dataset[0].point.reduce((sum, p) => sum + (p.value?.[0]?.intVal ?? 0), 0)
-        }
-        if (caloriesBurned === 0 && bucket.dataset[1]?.point) {
-          caloriesBurned = bucket.dataset[1].point.reduce((sum, p) => sum + (p.value?.[0]?.fpVal ?? p.value?.[0]?.intVal ?? 0), 0)
-        }
-      }
-      return res.status(200).json({ connected: true, steps, caloriesBurned: Math.round(caloriesBurned) })
+      const [heart, distance] = await Promise.all([optionalMetric('com.google.heart_rate.bpm'), optionalMetric('com.google.distance.delta')])
+      return res.status(200).json({
+        connected: true, steps, caloriesBurned: calories == null ? null : Math.round(calories),
+        heartRate: heart ? averageHeartRate(heart) : null,
+        distanceMeters: distance ? aggregateTotal(distance, 0) : null,
+      })
     } catch (err) {
       console.error('Google Fit aggregate fetch failed', err)
       return res.status(200).json({ connected: true, steps: null, caloriesBurned: null, error: 'fetch_failed' })

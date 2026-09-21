@@ -65,4 +65,9 @@ describe('api client', () => {
     expect((error as ApiError).status).toBe(500)
     expect((error as ApiError).code).toBe('unknown')
   })
+  it('rejects a successful HTML fallback page instead of treating it as an API response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<html></html>', { headers: { 'content-type': 'text/html' } })))
+    await expect(api.get('/ai/coach')).rejects.toMatchObject({ code: 'invalid_response' })
+  })
+
 })

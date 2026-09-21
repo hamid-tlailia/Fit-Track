@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, ChevronRight, Plus, Flame } from 'lucide-react'
+import { Bell, ChevronRight, Plus, Flame, HeartPulse } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
 
+import { estimateActiveCalories } from '@/lib/activity'
 import { foods } from '@/data/foods'
 import { api } from '@/lib/api'
 import { workouts } from '@/data/workouts'
@@ -28,7 +29,14 @@ export default function Dashboard() {
   const streak = useTrackerStore((state) => state.currentStreak())
   const addWater = useTrackerStore((state) => state.addWater)
 
+  const [now, setNow] = useState(() => new Date())
+  const [heartRate, setHeartRate] = useState<number | null>(null)
+  const [distanceMeters, setDistanceMeters] = useState<number | null>(null)
+  const [waterBusy, setWaterBusy] = useState(false)
+  const [actionError, setActionError] = useState(false)
   const [steps, setSteps] = useState<number | null>(null)
+  const [fitDay, setFitDay] = useState('')
+  const [fitTime, setFitTime] = useState(() => new Date())
   const [fitCalories, setFitCalories] = useState<number | null>(null)
   const [fitConnected, setFitConnected] = useState(false)
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false)
@@ -37,18 +45,29 @@ export default function Dashboard() {
 
   useEffect(() => { todayRef.current?.scrollIntoView({ inline: 'end', block: 'nearest' }) }, [])
 
+  useEffect(() => {
+    const tick = () => setNow(new Date())
+    const timer = setInterval(tick, 30_000)
+    window.addEventListener('focus', tick)
+    return () => { clearInterval(timer); window.removeEventListener('focus', tick) }
+  }, [])
+
   // Google Fit sync: steps + caloriesBurned together — fix sync issue
   useEffect(() => {
     let cancelled = false
     async function fetchFit() {
       try {
-        const data = await api.get<{ connected: boolean; steps?: number | null; caloriesBurned?: number | null }>(`/fit?action=steps&tzOffset=${new Date().getTimezoneOffset()}`)
-        if (cancelled) return
+        const requestedAt = new Date()
+        const data = await api.get<{ connected: boolean; steps?: number | null; caloriesBurned?: number | null; heartRate?: number | null; distanceMeters?: number | null }>(`/fit?action=steps&tzOffset=${new Date().getTimezoneOffset()}`)
+        if (cancelled || dateKeyOf(requestedAt) !== todayKey()) return
+        setFitDay(dateKeyOf(requestedAt)); setFitTime(requestedAt)
         setFitConnected(!!data.connected)
-        setSteps(data.connected ? (data.steps ?? 0) : null)
+        setSteps(data.connected ? (data.steps ?? null) : null)
+        setHeartRate(data.heartRate ?? null)
+        setDistanceMeters(data.distanceMeters ?? null)
         setFitCalories(data.connected && data.caloriesBurned != null ? data.caloriesBurned : null)
       } catch {
-        if (!cancelled) { setSteps(null); setFitCalories(null); setFitConnected(false) }
+        if (!cancelled) { setSteps(null); setHeartRate(null); setDistanceMeters(null); setFitCalories(null); setFitConnected(false) }
       }
     }
     fetchFit()
@@ -64,7 +83,8 @@ export default function Dashboard() {
 
   const isAr = i18n.language === 'ar'
   const locale = isAr ? 'ar' : 'en-US'
-  const key = todayKey()
+  const key = dateKeyOf(now)
+  const hasFitToday = fitDay === key
   const waterMl = waterByDate[key] ?? 0
   const waterL = waterMl / 1000
 
@@ -79,7 +99,12 @@ export default function Dashboard() {
   )
   // Calories burned: prefer Google Fit when connected, otherwise local workouts — fixes sync
   const localCaloriesBurned = completedWorkouts.filter((e) => dateKeyOf(e.dateISO) === key).reduce((sum, w) => sum + w.calories, 0)
-  const caloriesBurnedToday = fitConnected && fitCalories != null ? fitCalories : localCaloriesBurned
+  const midnight = new Date(fitTime); midnight.setHours(0, 0, 0, 0)
+  const activeFitCalories = hasFitToday && fitCalories != null && user
+    ? estimateActiveCalories(fitCalories, calculateBMR(user.weightKg, user.heightCm, user.age, user.gender), (fitTime.getTime() - midnight.getTime()) / 60_000)
+    : null
+  // Do not add Fit and workout calories: they may describe the same activity.
+  const caloriesBurnedToday = activeFitCalories ?? localCaloriesBurned
 
   const caloriesPct = Math.min(100, Math.round((caloriesToday / caloriesTarget) * 100))
   const waterPct = Math.min(100, Math.round((waterL / 2.5) * 100))
@@ -90,7 +115,7 @@ export default function Dashboard() {
   const initial = (user?.name?.trim()?.[0] ?? '?').toUpperCase()
 
   return (
-    <div className="max-w-[560px] mx-auto px-4 pt-5 pb-8 md:pt-8 md:px-6">
+    <div className="max-w-[560px] mx-auto px-4 pt-5 pb-28 md:pt-8 md:px-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {user?.avatarUrl ? (
@@ -101,12 +126,12 @@ export default function Dashboard() {
             </div>
           )}
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-[15px] font-extrabold leading-none">{user?.name ?? 'Hamid Tlailia'}</h1>
-              <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-brand-500 text-white">Pro</span>
-              {streak > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[15px] font-extrabold leading-none">{user?.name ?? ''}</h1>
+              <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-brand-500 text-white">{t(`subscription.plans.${user?.subscriptionTier ?? 'free'}.name`)}</span>
+              {(
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/20 flex items-center gap-1">
-                  <Flame size={10} /> {streak} {isAr ? 'يوم' : 'd'}
+                  <Flame size={10} /> {streak} {t('common.streak')}
                 </span>
               )}
             </div>
@@ -117,7 +142,7 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
-        <Link to="/notifications" className="relative h-9 w-9 grid place-items-center rounded-full bg-surface border border-[var(--line)] text-ink-soft shadow-sm">
+        <Link to="/notifications" aria-label={t('notifications.title')} className="relative h-9 w-9 grid place-items-center rounded-full bg-surface border border-[var(--line)] text-ink-soft shadow-sm">
           <Bell size={16} />
           {hasUnreadNotifications && <span className="absolute top-1 end-1 h-2 w-2 rounded-full bg-brand-500" />}
         </Link>
@@ -126,13 +151,13 @@ export default function Dashboard() {
       <div className="mt-5 flex gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-1">
         {currentWeek().map((d) => {
           const isToday = d.toDateString() === new Date().toDateString()
-          const dayLetter = d.toLocaleDateString(locale, { weekday: 'narrow' })
+          const dayLetter = d.toLocaleDateString(locale, { weekday: 'long' })
           return (
             <div
               key={d.toISOString()}
               ref={isToday ? todayRef : undefined}
-              className={`flex flex-col items-center justify-center rounded-2xl min-w-[44px] px-2 py-2 border text-center ${
-                isToday ? 'bg-white border-brand-500 text-ink shadow-sm' : 'bg-white border-[var(--line)] text-ink-soft'
+              className={`flex flex-col items-center justify-center rounded-2xl min-w-[68px] flex-1 px-2 py-2 border text-center ${
+                isToday ? 'bg-surface border-brand-500 text-ink shadow-sm' : 'bg-surface border-[var(--line)] text-ink-soft'
               }`}
             >
               <span className="text-[11px] font-bold">{dayLetter}</span>
@@ -151,57 +176,66 @@ export default function Dashboard() {
 
       <div className="mt-3 grid grid-cols-2 gap-3 relative">
         <ActivityCircleCard
+          label={t('dashboard.caloriesToday')}
           value={caloriesToday}
-          sub={`${caloriesToday}/${caloriesTarget} kcal`}
+          sub={`${caloriesToday}/${caloriesTarget} ${t('common.kcal')}`}
           pct={caloriesPct}
           color="var(--brand-500)"
           bg="rgba(255,107,45,0.12)"
         />
         <ActivityCircleCard
-          value={`${(waterMl / 1000).toFixed(2).replace(/\.00$/, '').replace(/0$/, '')}`}
-          suffix=" L"
-          sub={`${waterMl} ml`}
+          label={t('dashboard.waterToday')}
+          value={`${(waterMl / 1000).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')}`}
+          suffix={` ${t('common.liter')}`}
+          sub={`${waterMl} ${t('common.ml')}`}
           pct={waterPct}
           color="#3B82F6"
           bg="rgba(59,130,246,0.12)"
         />
         {/* Calories Burned — synced with Google Fit when connected */}
         <ActivityCircleCard
+          label={t('dashboard.activeCalories')}
           value={caloriesBurnedToday}
-          sub={fitConnected ? `${caloriesBurnedToday} kcal • Fit` : `${caloriesBurnedToday} kcal`}
+          sub={`${t('dashboard.estimated')} • ${activeFitCalories != null ? 'Google Fit' : t('nav.workouts')}`}
           pct={burnedPct}
           color="var(--brand-500)"
           bg="rgba(255,107,45,0.12)"
         />
         <ActivityCircleCard
-          value={steps ?? 0}
-          sub={fitConnected ? `${(steps ?? 0).toLocaleString(locale)} ${isAr ? 'خطوة' : 'steps'} • Fit` : `${(steps ?? 0).toLocaleString(locale)} ${isAr ? 'خطوة' : 'steps'}`}
-          pct={stepsPct}
+          label={t('dashboard.steps')}
+          value={hasFitToday ? steps ?? '—' : '—'}
+          sub={!hasFitToday || steps == null ? t('dashboard.noSensorData') : t('dashboard.stepsUnit')}
+          pct={hasFitToday ? stepsPct : 0}
           color="var(--brand-500)"
           bg="rgba(255,107,45,0.12)"
         />
-        <button
-          onClick={() => setFabOpen((v) => !v)}
-          className="absolute -bottom-3 end-0 translate-x-1 h-10 w-10 rounded-xl bg-brand-500 text-white grid place-items-center shadow-[0_6px_16px_rgba(255,107,45,0.35)] border-2 border-bg"
-        >
-          <Plus size={18} strokeWidth={2.7} />
-        </button>
       </div>
 
-      {fabOpen && (
-        <div className="mt-6 flex flex-wrap gap-2 animate-[slide-up_0.2s_ease]">
-          <Link to="/workouts" className="rounded-full bg-brand-500 text-white px-4 py-2 text-xs font-bold">
-            {t('dashboard.startWorkout')}
-          </Link>
-          <Link to="/nutrition" className="rounded-full bg-surface border border-[var(--line)] px-4 py-2 text-xs font-bold">
-            {t('dashboard.logFood')}
-          </Link>
-          {/* Fixed: adds exactly 250ml, display now shows exact ml so no 300 confusion */}
-          <button onClick={() => void addWater(250)} className="rounded-full bg-white border border-[var(--line)] px-4 py-2 text-xs font-bold">
-            {t('dashboard.addWater')} • 250ml
-          </button>
+      <div className="mt-3 rounded-2xl border border-line bg-surface p-4">
+        <h3 className="font-bold text-sm flex gap-2 items-center"><HeartPulse size={18} className="text-rose-500" />{t('dashboard.healthMetrics')}</h3>
+        <div className="grid grid-cols-2 gap-3 mt-3 text-sm">
+          <div><p className="text-ink-soft text-xs">{t('dashboard.heartRate')}</p><p className="font-bold mt-1">{!hasFitToday || heartRate == null ? '—' : `${Math.round(heartRate)} ${t('dashboard.bpm')}`}</p></div>
+          <div><p className="text-ink-soft text-xs">{t('dashboard.distance')}</p><p className="font-bold mt-1">{!hasFitToday || distanceMeters == null ? '—' : `${(distanceMeters / 1000).toFixed(2)} ${t('common.km')}`}</p></div>
         </div>
-      )}
+        {(!hasFitToday || heartRate == null) && <p className="mt-2 text-xs text-ink-soft">{t('dashboard.sensorHint')}</p>}
+        {hasFitToday && fitCalories != null && <p className="mt-2 text-xs text-ink-soft">{t('dashboard.totalEnergy', { count: fitCalories })}</p>}
+      </div>
+
+      <div className="home-fab fixed z-40 flex flex-col items-center gap-3">
+        {fabOpen && <div id="home-actions" className="w-64 rounded-2xl border border-line bg-surface p-3 shadow-2xl flex flex-col gap-2 animate-[slide-up_0.2s_ease]">
+          <Link to="/workouts" className="rounded-xl bg-brand-500 text-white px-4 py-3 text-sm font-bold">{t('dashboard.startWorkout')}</Link>
+          <Link to="/nutrition" className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold">{t('dashboard.logFood')}</Link>
+          <button disabled={waterBusy} onClick={async () => {
+            setWaterBusy(true); setActionError(false)
+            try { await addWater(250); setFabOpen(false) } catch { setActionError(true) } finally { setWaterBusy(false) }
+          }} className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold disabled:opacity-50">{waterBusy ? t('common.loading') : t('dashboard.addWater')}</button>
+          {actionError && <p role="alert" className="text-xs text-red-500">{t('common.saveError')}</p>}
+        </div>}
+        <button onClick={() => setFabOpen((v) => !v)} aria-label={fabOpen ? t('common.close') : t('dashboard.quickActions')} aria-expanded={fabOpen} aria-controls="home-actions"
+          className="h-14 w-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center shadow-[0_8px_28px_rgba(255,107,45,.4)] border-4 border-bg transition active:scale-95">
+          <Plus size={26} strokeWidth={2.5} className={`transition-transform ${fabOpen ? 'rotate-45' : ''}`} />
+        </button>
+      </div>
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-[14px] font-extrabold">{t('dashboard.todaySession')}</h2>
@@ -227,6 +261,7 @@ export default function Dashboard() {
 }
 
 function ActivityCircleCard({
+  label,
   value,
   sub,
   suffix,
@@ -234,6 +269,7 @@ function ActivityCircleCard({
   color,
   bg,
 }: {
+  label: string
   value: number | string
   sub: string
   suffix?: string
@@ -243,6 +279,7 @@ function ActivityCircleCard({
 }) {
   return (
     <div className="rounded-[20px] bg-surface border border-[var(--line)] p-4 flex flex-col items-center text-center shadow-sm">
+      <p className="text-xs font-bold mb-2">{label}</p>
       <div className="relative h-[72px] w-[72px]">
         <RadialBarChart width={72} height={72} innerRadius={28} outerRadius={36} barSize={6} data={[{ value: pct, fill: color }]} startAngle={90} endAngle={-270}>
           <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />

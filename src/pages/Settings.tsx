@@ -21,6 +21,8 @@ export default function Settings() {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
+  const colorMode = useAppStore((state) => state.colorMode)
+  const setColorMode = useAppStore((state) => state.setColorMode)
   const theme = useAppStore((state) => state.theme)
   const setTheme = useAppStore((state) => state.setTheme)
   const voiceGender = useAppStore((state) => state.voiceGender)
@@ -182,6 +184,17 @@ export default function Settings() {
       </Card>
 
       <Card className="mt-4">
+        <h2 className="font-bold mb-3">{t('settings.appearance')}</h2>
+        <div className="grid grid-cols-3 gap-2">
+          {(['light', 'dark', 'system'] as const).map((mode) => (
+            <button key={mode} onClick={() => setColorMode(mode)} aria-pressed={colorMode === mode}
+              className={`rounded-xl border px-2 py-3 text-sm font-bold transition ${colorMode === mode ? 'border-brand-500 bg-brand-500/10 text-brand-500' : 'border-line bg-surface-2'}`}>
+              {t(`settings.colorModes.${mode}`)}
+            </button>
+          ))}
+        </div>
+      </Card>
+      <Card className="mt-4">
         <h2 className="font-bold mb-3">{t('settings.theme')}</h2>
         <div className="grid grid-cols-2 gap-3">
           {themes.map((def) => (
@@ -323,7 +336,7 @@ export default function Settings() {
                 }`}
               >
                 <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-surface transition-all ${
                     remindersOn ? 'start-[22px]' : 'start-1'
                   }`}
                 />

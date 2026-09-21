@@ -48,9 +48,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'GET') {
+    const language = req.query.language === 'ar' ? 'ar' : 'en'
     const rows = await sql`
       SELECT id, type, language, content, created_at AS "createdAt" FROM ai_plans
-      WHERE user_id = ${user.id} AND type = ${type}
+      WHERE user_id = ${user.id} AND type = ${type} AND language = ${language}
       ORDER BY created_at DESC LIMIT 1
     `
     return res.status(200).json({ plan: rows[0] ?? null })

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 
+import { workoutCalories } from '@/lib/activity'
 import { Button } from '@/components/ui/Button'
 import type { Workout } from '@/data/workouts'
 import { getWorkoutById } from '@/data/workouts'
@@ -50,8 +51,22 @@ export default function WorkoutPlayer() {
   const [phaseIndex, setPhaseIndex] = useState(0)
   const [remaining, setRemaining] = useState(phases[0]?.durationSec ?? 0)
   const [running, setRunning] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
+  const elapsed = useRef(0)
+  const activeSince = useRef<number | null>(null)
+  const savingRef = useRef(false)
   const [finished, setFinished] = useState(false)
   const spokenPhaseRef = useRef(-1)
+
+  useEffect(() => {
+    if (!running || finished || saving) return
+    activeSince.current = performance.now()
+    return () => {
+      if (activeSince.current != null) elapsed.current += (performance.now() - activeSince.current) / 1000
+      activeSince.current = null
+    }
+  }, [running, finished, saving])
 
   useEffect(() => {
     void loadVoices()
@@ -79,7 +94,7 @@ export default function WorkoutPlayer() {
   }, [phaseIndex, phases])
 
   useEffect(() => {
-    if (!running || finished || !phase?.durationSec) return
+    if (!running || finished || saving || !phase?.durationSec) return
     if (remaining <= 0) {
       goToNextPhase()
       return
@@ -87,25 +102,49 @@ export default function WorkoutPlayer() {
     const timeout = setTimeout(() => setRemaining((value) => value - 1), 1000)
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, running, finished, phase])
+  }, [remaining, running, finished, saving, phase])
 
   useEffect(() => stopSpeaking, [])
 
   if (!workout) return <Navigate to="/workouts" replace />
 
   function goToNextPhase() {
+    if (savingRef.current) return
     if (phaseIndex + 1 >= phases.length) {
       finishWorkout()
       return
     }
+    setRemaining(phases[phaseIndex + 1]?.durationSec ?? 0)
     setPhaseIndex((index) => index + 1)
   }
 
   function finishWorkout() {
-    if (!workout) return
+    if (!workout || savingRef.current) return
     stopSpeaking()
-    void completeWorkout(workout.id, workout.durationMin, workout.calories)
-    setFinished(true)
+    if (activeSince.current != null) elapsed.current += (performance.now() - activeSince.current) / 1000
+    activeSince.current = null
+    setRunning(false)
+    setSaving(true)
+    void saveWorkout()
+  }
+
+  async function saveWorkout() {
+    if (!workout || savingRef.current) return
+    savingRef.current = true; setSaveError(false)
+    try {
+      await completeWorkout(workout.id, Math.round(elapsed.current / 60), workoutCalories(workout.calories, workout.durationMin, elapsed.current))
+      setFinished(true); setSaving(false)
+    } catch { setSaveError(true) }
+    finally { savingRef.current = false }
+  }
+
+  if (saving && !finished) {
+    return <div className="min-h-dvh bg-bg text-ink flex flex-col items-center justify-center gap-4 px-6 text-center">
+      <h1 className="text-2xl font-bold">{t('player.complete.title')}</h1>
+      <p className="text-ink-soft">{t('player.saveHint')}</p>
+      {saveError && <p role="alert" className="text-red-500">{t('common.saveError')}</p>}
+      <Button loading={!saveError} onClick={() => void saveWorkout()}>{saveError ? t('common.retry') : t('common.loading')}</Button>
+    </div>
   }
 
   if (finished) {
@@ -114,7 +153,7 @@ export default function WorkoutPlayer() {
         <div className="text-6xl">🎉</div>
         <h1 className="text-2xl font-extrabold">{t('player.complete.title')}</h1>
         <p className="text-ink-soft max-w-xs">
-          {t('player.complete.subtitle', { calories: workout.calories })}
+          {t('player.complete.subtitle', { calories: workoutCalories(workout.calories, workout.durationMin, elapsed.current) })}
         </p>
         <div className="flex gap-3 mt-3">
           <Button variant="secondary" onClick={() => navigate('/workouts')}>
