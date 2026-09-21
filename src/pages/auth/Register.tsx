@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import type { Gender, Goal } from '@/store/useAppStore'
 import { useAppStore } from '@/store/useAppStore'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -49,8 +50,9 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-bg text-ink px-6 py-10">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
+    <PullToRefresh className="min-h-dvh flex flex-col bg-bg text-ink overflow-y-auto">
+      <div className="min-h-dvh flex items-center justify-center px-6 py-10">
+        <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
         <h1 className="text-2xl font-extrabold">{t('auth.register')}</h1>
 
         <Field label={t('auth.name')} value={name} onChange={setName} required />
@@ -69,8 +71,9 @@ export default function Register() {
             {t('auth.signIn')}
           </Link>
         </p>
-      </form>
-    </div>
+        </form>
+      </div>
+    </PullToRefresh>
   )
 }
 

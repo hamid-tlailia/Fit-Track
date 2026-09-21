@@ -11,9 +11,11 @@ import {
   Crown,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet } from 'react-router-dom'
+
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 
 interface NavItem {
   to: string
@@ -57,6 +59,18 @@ export function AppLayout() {
       vv.removeEventListener('scroll', sync)
       document.body.classList.remove('app-shell-locked')
     }
+  }, [])
+
+  // Pull-to-refresh handler: reloads the page (and notifies listeners for soft refresh)
+  const handleRefresh = useCallback(async () => {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(20)
+      } catch {}
+    }
+    window.dispatchEvent(new CustomEvent('fitforge:refresh'))
+    await new Promise((r) => setTimeout(r, 500))
+    window.location.reload()
   }, [])
 
   return (
@@ -151,9 +165,11 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto overflow-x-hidden bg-bg relative">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-transparent h-32 hidden md:block" />
-        <Outlet />
+      <main className="flex-1 overflow-hidden bg-bg relative flex flex-col">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-transparent h-32 hidden md:block z-10" />
+        <PullToRefresh className="flex-1 overflow-y-auto overflow-x-hidden bg-bg relative" onRefresh={handleRefresh}>
+          <Outlet />
+        </PullToRefresh>
       </main>
 
       {/* Mobile bottom nav — the active theme color stays on the icon while the label remains readable */}
