@@ -13,7 +13,7 @@ import {
 import type { ComponentType } from 'react'
 import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 
@@ -41,6 +41,8 @@ const secondaryNavItems: NavItem[] = [
 export function AppLayout() {
   const { t } = useTranslation()
   const shellRef = useRef<HTMLDivElement>(null)
+  const { pathname } = useLocation()
+  const fillHeight = pathname.startsWith('/coach')
 
   useEffect(() => {
     document.body.classList.add('app-shell-locked')
@@ -167,9 +169,14 @@ export function AppLayout() {
 
       <main className="flex-1 overflow-hidden bg-bg relative flex flex-col">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-transparent h-32 hidden md:block z-10" />
-        <PullToRefresh className="flex-1 overflow-y-auto overflow-x-hidden bg-bg relative" onRefresh={handleRefresh}>
+        <PullToRefresh
+          fill={fillHeight}
+          className={`flex-1 min-h-0 overflow-x-hidden bg-bg relative ${fillHeight ? 'overflow-hidden' : 'overflow-y-auto'}`}
+          onRefresh={handleRefresh}
+        >
           <Outlet />
         </PullToRefresh>
+        <div id="home-fab-root" className="pointer-events-none absolute inset-x-0 bottom-3 md:bottom-6 z-40 flex justify-center" />
       </main>
 
       {/* Mobile bottom nav — the active theme color stays on the icon while the label remains readable */}
@@ -182,7 +189,7 @@ export function AppLayout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl text-[10px] font-bold leading-none transition-all duration-200 ${
+                `flex flex-col items-center justify-center gap-1.5 py-1 rounded-xl text-[10px] font-bold leading-none transition-all duration-200 ${
                   isActive ? 'text-brand-500' : 'text-ink-soft hover:text-ink'
                 }`
               }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronRight, Plus, Flame, HeartPulse, Dumbbell, Salad, Droplets } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -220,21 +221,24 @@ export default function Dashboard() {
         {hasFitToday && fitCalories != null && <p className="mt-2 text-xs text-ink-soft">{t('dashboard.totalEnergy', { count: fitCalories })}</p>}
       </div>
 
-      <div className="home-fab fixed z-40 flex flex-col items-center gap-3">
-        {fabOpen && <div id="home-actions" className="w-64 rounded-2xl border border-line bg-surface p-3 shadow-2xl flex flex-col gap-2 animate-[slide-up_0.2s_ease]">
-          <Link to="/workouts" className="rounded-xl bg-brand-500 text-white px-4 py-3 text-sm font-bold flex items-center gap-2.5"><Dumbbell size={16} /> {t('dashboard.startWorkout')}</Link>
-          <Link to="/nutrition" className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold flex items-center gap-2.5"><Salad size={16} /> {t('dashboard.logFood')}</Link>
-          <button disabled={waterBusy} onClick={async () => {
-            setWaterBusy(true); setActionError(false)
-            try { await addWater(250); setFabOpen(false) } catch { setActionError(true) } finally { setWaterBusy(false) }
-          }} className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold disabled:opacity-50 flex items-center gap-2.5"><Droplets size={16} /> {waterBusy ? t('common.loading') : t('dashboard.addWater')}</button>
-          {actionError && <p role="alert" className="text-xs text-red-500">{t('common.saveError')}</p>}
-        </div>}
-        <button onClick={() => setFabOpen((v) => !v)} aria-label={fabOpen ? t('common.close') : t('dashboard.quickActions')} aria-expanded={fabOpen} aria-controls="home-actions"
-          className="h-14 w-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center shadow-[0_8px_28px_rgba(255,107,45,.4)] border-4 border-bg transition active:scale-95">
-          <Plus size={26} strokeWidth={2.5} className={`transition-transform ${fabOpen ? 'rotate-45' : ''}`} />
-        </button>
-      </div>
+      {fabHost && createPortal(
+        <div className="pointer-events-auto flex flex-col items-center gap-3">
+          {fabOpen && <div id="home-actions" className="w-64 rounded-2xl border border-line bg-surface p-3 shadow-2xl flex flex-col gap-2 animate-[slide-up_0.2s_ease]">
+            <Link to="/workouts" className="rounded-xl bg-brand-500 text-white px-4 py-3 text-sm font-bold flex items-center gap-2.5"><Dumbbell size={16} /> {t('dashboard.startWorkout')}</Link>
+            <Link to="/nutrition" className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold flex items-center gap-2.5"><Salad size={16} /> {t('dashboard.logFood')}</Link>
+            <button disabled={waterBusy} onClick={async () => {
+              setWaterBusy(true); setActionError(false)
+              try { await addWater(250); setFabOpen(false) } catch { setActionError(true) } finally { setWaterBusy(false) }
+            }} className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold disabled:opacity-50 flex items-center gap-2.5"><Droplets size={16} /> {waterBusy ? t('common.loading') : t('dashboard.addWater')}</button>
+            {actionError && <p role="alert" className="text-xs text-red-500">{t('common.saveError')}</p>}
+          </div>}
+          <button onClick={() => setFabOpen((v) => !v)} aria-label={fabOpen ? t('common.close') : t('dashboard.quickActions')} aria-expanded={fabOpen} aria-controls="home-actions"
+            className="h-14 w-14 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center shadow-[0_8px_28px_rgba(255,107,45,.4)] border-4 border-bg transition active:scale-95">
+            <Plus size={26} strokeWidth={2.5} className={`transition-transform ${fabOpen ? 'rotate-45' : ''}`} />
+          </button>
+        </div>,
+        fabHost,
+      )}
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-[14px] font-extrabold">{t('dashboard.todaySession')}</h2>
