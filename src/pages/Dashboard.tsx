@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronRight, Plus, Flame, HeartPulse, Dumbbell, Salad, Droplets } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +12,13 @@ import { workouts } from '@/data/workouts'
 import { calculateBMR, calculateMacros, calculateTDEE } from '@/lib/calculations'
 import { useAuthStore } from '@/store/useAuthStore'
 import { dateKeyOf, todayKey, useTrackerStore } from '@/store/useTrackerStore'
+
+// The FAB is portaled into the `#home-fab-root` slot that AppLayout renders, so it floats
+// above the page content instead of being clipped by the scroll container. The slot is part
+// of the same commit as this page, so it does not exist during the first render — reading it
+// through an external store lets React pick it up right after mount without extra state.
+const readFabHost = () => document.getElementById('home-fab-root')
+const subscribeToFabHost = () => () => {}
 
 function currentWeek(): Date[] {
   return Array.from({ length: 7 }, (_, i) => {
@@ -41,6 +48,7 @@ export default function Dashboard() {
   const [fitCalories, setFitCalories] = useState<number | null>(null)
   const [fitConnected, setFitConnected] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
+  const fabHost = useSyncExternalStore(subscribeToFabHost, readFabHost, () => null)
   const todayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { todayRef.current?.scrollIntoView({ inline: 'end', block: 'nearest' }) }, [])

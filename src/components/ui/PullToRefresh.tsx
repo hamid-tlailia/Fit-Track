@@ -15,7 +15,7 @@ interface PullToRefreshProps {
 // at this offset while a refresh is in flight so the badge stays fully visible.
 const INDICATOR_HEIGHT = 80
 
-export function PullToRefresh({ children, onRefresh, threshold = 80, className = '', disabled = false }: PullToRefreshProps) {
+export function PullToRefresh({ children, onRefresh, threshold = 80, className = '', disabled = false, fill = false }: PullToRefreshProps) {
   const { t, i18n } = useTranslation()
   const isAr = i18n.language === 'ar'
   const containerRef = useRef<HTMLDivElement>(null)
