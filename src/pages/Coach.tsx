@@ -255,9 +255,9 @@ function CoachChat() {
       </div>
 
       {historyOpen && (
-        <div className="absolute inset-0 z-50 flex">
+        <div className={`absolute inset-0 z-50 flex ${isAr ? 'flex-row-reverse' : ''}`}>
           <button type="button" aria-label={t('common.close')} onClick={() => setHistoryOpen(false)} className="flex-1 bg-black/40 backdrop-blur-sm" />
-          <div className="w-[320px] max-w-[82%] bg-white border-s border-[var(--line)] flex flex-col">
+          <div className={`w-[320px] max-w-[82%] bg-white flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.12)] ${isAr ? 'border-e border-[var(--line)] animate-[slide-in-left_0.25s_ease]' : 'border-s border-[var(--line)] animate-[slide-in-right_0.25s_ease]'}`}>
             <div className="flex items-center justify-between p-4 border-b border-[var(--line)]">
               <h2 className="font-black text-sm">{t('coach.history')}</h2>
               <button onClick={() => setHistoryOpen(false)} className="h-8 w-8 grid place-items-center rounded-full border border-[var(--line)]"><X size={14} /></button>

@@ -7,7 +7,7 @@ import { getUserFromRequest } from './_lib/auth.js'
 import { ensureSchema, sql } from './_lib/db.js'
 
 const STATE_COOKIE = 'fitforge_fit_state'
-const SCOPE = 'https://www.googleapis.com/auth/fitness.activity.read'
+const SCOPE = 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read'
 
 interface FitTokenRow {
   access_token: string
@@ -114,8 +114,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!tokenRes.ok) throw new Error(`Token exchange failed: ${tokenRes.status}`)
       const tokens = (await tokenRes.json()) as { access_token: string; refresh_token?: string; expires_in: number }
       if (!tokens.refresh_token) {
-        // Google only returns a refresh_token on first consent; if the user
-        // reconnects without revoking access first, keep the existing one.
         const existing = await sql`SELECT refresh_token FROM google_fit_tokens WHERE user_id = ${user.id}`
         const existingToken = (existing[0] as { refresh_token: string } | undefined)?.refresh_token
         if (!existingToken) return res.redirect(302, settingsRedirect(req, 'fit=error&reason=no_refresh_token'))
@@ -135,7 +133,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.redirect(302, settingsRedirect(req, 'fit=connected'))
   }
 
-  // GET ?action=steps / DELETE ?action=disconnect both need an authenticated user.
   const user = await getUserFromRequest(req)
   if (!user) return res.status(401).json({ error: 'Not authenticated' })
 
@@ -144,7 +141,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: true })
   }
 
-  if (action === 'steps' && req.method === 'GET') {
+  if ((action === 'steps' || action === 'data') && req.method === 'GET') {
     const rows = await sql`SELECT access_token, refresh_token, expires_at FROM google_fit_tokens WHERE user_id = ${user.id}`
     const row = rows[0] as FitTokenRow | undefined
     if (!row) return res.status(200).json({ connected: false })
@@ -159,13 +156,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await sql`UPDATE google_fit_tokens SET access_token = ${accessToken}, expires_at = ${expiresAt} WHERE user_id = ${user.id}`
       } catch (err) {
         console.error('Google Fit token refresh failed', err)
-        return res.status(200).json({ connected: true, steps: null, error: 'refresh_failed' })
+        return res.status(200).json({ connected: true, steps: null, caloriesBurned: null, error: 'refresh_failed' })
       }
     }
 
-    // The browser knows the user's real timezone; the server doesn't (Vercel
-    // functions run in UTC). Without this, "start of day" was midnight UTC,
-    // which is the wrong boundary for almost everyone.
     const tzOffsetMinutes = Number(req.query.tzOffset) || 0
     const nowMs = Date.now()
     const localMs = nowMs - tzOffsetMinutes * 60_000
@@ -175,10 +169,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Google ignores an explicit dataSourceId here and always answers
-          // from its own merged "aggregated" derived source, so there's no
-          // point pinning one.
-          aggregateBy: [{ dataTypeName: 'com.google.step_count.delta' }],
+          aggregateBy: [
+            { dataTypeName: 'com.google.step_count.delta' },
+            { dataTypeName: 'com.google.calories.expended' },
+          ],
           bucketByTime: { durationMillis: 86_400_000 },
           startTimeMillis: startOfDay,
           endTimeMillis: nowMs,
@@ -186,14 +180,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
       if (!aggRes.ok) throw new Error(`Fitness API error: ${aggRes.status}`)
       const data = (await aggRes.json()) as {
-        bucket?: { dataset?: { point?: { value?: { intVal?: number }[] }[] }[] }[]
+        bucket?: {
+          dataset?: {
+            dataSourceId?: string
+            point?: { value?: { intVal?: number; fpVal?: number }[] }[]
+          }[]
+        }[]
       }
-      const steps =
-        data.bucket?.[0]?.dataset?.[0]?.point?.reduce((sum, point) => sum + (point.value?.[0]?.intVal ?? 0), 0) ?? 0
-      return res.status(200).json({ connected: true, steps })
+      const bucket = data.bucket?.[0]
+      let steps = 0
+      let caloriesBurned = 0
+      if (bucket?.dataset) {
+        for (const ds of bucket.dataset) {
+          const pts = ds.point ?? []
+          if (ds.dataSourceId?.includes('step_count')) {
+            steps = pts.reduce((sum, point) => sum + (point.value?.[0]?.intVal ?? 0), 0)
+          } else if (ds.dataSourceId?.includes('calories')) {
+            caloriesBurned = pts.reduce((sum, point) => sum + (point.value?.[0]?.fpVal ?? point.value?.[0]?.intVal ?? 0), 0)
+          } else {
+            // Fallback: Google may not include dataSourceId, so infer by dataset index
+            // dataset[0] is steps, dataset[1] is calories when requested in that order
+          }
+        }
+        // Fallback parsing if dataSourceId not helpful
+        if (steps === 0 && bucket.dataset[0]?.point) {
+          steps = bucket.dataset[0].point.reduce((sum, p) => sum + (p.value?.[0]?.intVal ?? 0), 0)
+        }
+        if (caloriesBurned === 0 && bucket.dataset[1]?.point) {
+          caloriesBurned = bucket.dataset[1].point.reduce((sum, p) => sum + (p.value?.[0]?.fpVal ?? p.value?.[0]?.intVal ?? 0), 0)
+        }
+      }
+      return res.status(200).json({ connected: true, steps, caloriesBurned: Math.round(caloriesBurned) })
     } catch (err) {
       console.error('Google Fit aggregate fetch failed', err)
-      return res.status(200).json({ connected: true, steps: null, error: 'fetch_failed' })
+      return res.status(200).json({ connected: true, steps: null, caloriesBurned: null, error: 'fetch_failed' })
     }
   }
 

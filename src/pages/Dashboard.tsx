@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, ChevronRight, Plus } from 'lucide-react'
+import { Bell, ChevronRight, Plus, Flame } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
@@ -24,19 +24,40 @@ export default function Dashboard() {
   const user = useAuthStore((state) => state.user)
   const foodLog = useTrackerStore((state) => state.foodLog)
   const waterByDate = useTrackerStore((state) => state.waterByDate)
+  const completedWorkouts = useTrackerStore((state) => state.completedWorkouts)
   const streak = useTrackerStore((state) => state.currentStreak())
   const addWater = useTrackerStore((state) => state.addWater)
 
   const [steps, setSteps] = useState<number | null>(null)
+  const [fitCalories, setFitCalories] = useState<number | null>(null)
+  const [fitConnected, setFitConnected] = useState(false)
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
   const todayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { todayRef.current?.scrollIntoView({ inline: 'end', block: 'nearest' }) }, [])
+
+  // Google Fit sync: steps + caloriesBurned together — fix sync issue
   useEffect(() => {
-    api.get<{ connected: boolean; steps?: number | null }>(`/fit?action=steps&tzOffset=${new Date().getTimezoneOffset()}`)
-      .then((d) => setSteps(d.connected ? (d.steps ?? null) : null)).catch(() => setSteps(null))
+    let cancelled = false
+    async function fetchFit() {
+      try {
+        const data = await api.get<{ connected: boolean; steps?: number | null; caloriesBurned?: number | null }>(`/fit?action=steps&tzOffset=${new Date().getTimezoneOffset()}`)
+        if (cancelled) return
+        setFitConnected(!!data.connected)
+        setSteps(data.connected ? (data.steps ?? 0) : null)
+        setFitCalories(data.connected && data.caloriesBurned != null ? data.caloriesBurned : null)
+      } catch {
+        if (!cancelled) { setSteps(null); setFitCalories(null); setFitConnected(false) }
+      }
+    }
+    fetchFit()
+    const id = setInterval(fetchFit, 60000)
+    const onVis = () => { if (document.visibilityState === 'visible') fetchFit() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { cancelled = true; clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
   }, [])
+
   useEffect(() => {
     api.get<{ unreadCount: number }>('/push?action=list').then((d) => setHasUnreadNotifications(d.unreadCount > 0)).catch(() => undefined)
   }, [])
@@ -56,9 +77,13 @@ export default function Dashboard() {
       return food ? sum + (food.kcalPer100g * entry.grams) / 100 : sum
     }, 0),
   )
+  // Calories burned: prefer Google Fit when connected, otherwise local workouts — fixes sync
+  const localCaloriesBurned = completedWorkouts.filter((e) => dateKeyOf(e.dateISO) === key).reduce((sum, w) => sum + w.calories, 0)
+  const caloriesBurnedToday = fitConnected && fitCalories != null ? fitCalories : localCaloriesBurned
+
   const caloriesPct = Math.min(100, Math.round((caloriesToday / caloriesTarget) * 100))
   const waterPct = Math.min(100, Math.round((waterL / 2.5) * 100))
-  const streakPct = Math.min(100, streak > 0 ? Math.round((streak / 7) * 100) : 0)
+  const burnedPct = Math.min(100, Math.round((caloriesBurnedToday / 600) * 100))
   const stepsPct = steps != null ? Math.min(100, Math.round((steps / 10000) * 100)) : 0
 
   const suggested = workouts[0]
@@ -66,7 +91,6 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-[560px] mx-auto px-4 pt-5 pb-8 md:pt-8 md:px-6">
-      {/* Top header like center phone: avatar + Pro */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {user?.avatarUrl ? (
@@ -80,30 +104,35 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <h1 className="text-[15px] font-extrabold leading-none">{user?.name ?? 'Hamid Tlailia'}</h1>
               <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-brand-500 text-white">Pro</span>
+              {streak > 0 && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/20 flex items-center gap-1">
+                  <Flame size={10} /> {streak} {isAr ? 'يوم' : 'd'}
+                </span>
+              )}
             </div>
-            <p className="text-[13px] font-semibold text-ink-soft mt-0.5">{t('dashboard.subtitle')}</p>
+            <p className="text-[13px] font-semibold text-ink-soft mt-0.5 flex items-center gap-1.5">
+              {fitConnected ? (
+                <><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Google Fit • {t('dashboard.subtitle')}</>
+              ) : t('dashboard.subtitle')}
+            </p>
           </div>
         </div>
-        <Link to="/notifications" className="relative h-9 w-9 grid place-items-center rounded-full bg-surface border border-[var(--line)] text-ink-soft">
+        <Link to="/notifications" className="relative h-9 w-9 grid place-items-center rounded-full bg-surface border border-[var(--line)] text-ink-soft shadow-sm">
           <Bell size={16} />
           {hasUnreadNotifications && <span className="absolute top-1 end-1 h-2 w-2 rounded-full bg-brand-500" />}
         </Link>
       </div>
 
-      {/* Week strip like screenshot: S M T W T F S with numbers 24-30 */}
       <div className="mt-5 flex gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-1">
         {currentWeek().map((d) => {
           const isToday = d.toDateString() === new Date().toDateString()
           const dayLetter = d.toLocaleDateString(locale, { weekday: 'narrow' })
-          // screenshot shows S 24 selected with orange pill outline
           return (
             <div
               key={d.toISOString()}
               ref={isToday ? todayRef : undefined}
               className={`flex flex-col items-center justify-center rounded-2xl min-w-[44px] px-2 py-2 border text-center ${
-                isToday
-                  ? 'bg-white border-brand-500 text-ink shadow-sm'
-                  : 'bg-white border-[var(--line)] text-ink-soft'
+                isToday ? 'bg-white border-brand-500 text-ink shadow-sm' : 'bg-white border-[var(--line)] text-ink-soft'
               }`}
             >
               <span className="text-[11px] font-bold">{dayLetter}</span>
@@ -115,10 +144,11 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Recent Activity title */}
-      <h2 className="mt-6 text-[15px] font-extrabold">{t('dashboard.recentActivity')}</h2>
+      <h2 className="mt-6 text-[15px] font-extrabold flex items-center gap-2">
+        {t('dashboard.recentActivity')}
+        {fitConnected && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Google Fit</span>}
+      </h2>
 
-      {/* 2x2 grid like screenshot */}
       <div className="mt-3 grid grid-cols-2 gap-3 relative">
         <ActivityCircleCard
           value={caloriesToday}
@@ -128,29 +158,28 @@ export default function Dashboard() {
           bg="rgba(255,107,45,0.12)"
         />
         <ActivityCircleCard
-          value={waterL.toFixed(1)}
+          value={`${(waterMl / 1000).toFixed(2).replace(/\.00$/, '').replace(/0$/, '')}`}
           suffix=" L"
-          sub={`${waterL.toFixed(1)} L`}
+          sub={`${waterMl} ml`}
           pct={waterPct}
           color="#3B82F6"
           bg="rgba(59,130,246,0.12)"
         />
+        {/* Calories Burned — synced with Google Fit when connected */}
         <ActivityCircleCard
-          value={streak}
-          sub={`${streak} ${isAr ? 'يوم' : 'day'}`}
-          pct={streakPct}
+          value={caloriesBurnedToday}
+          sub={fitConnected ? `${caloriesBurnedToday} kcal • Fit` : `${caloriesBurnedToday} kcal`}
+          pct={burnedPct}
           color="var(--brand-500)"
           bg="rgba(255,107,45,0.12)"
         />
         <ActivityCircleCard
           value={steps ?? 0}
-          sub={`${steps ?? 0} ${isAr ? 'خطوة' : 'steps'}`}
+          sub={fitConnected ? `${(steps ?? 0).toLocaleString(locale)} ${isAr ? 'خطوة' : 'steps'} • Fit` : `${(steps ?? 0).toLocaleString(locale)} ${isAr ? 'خطوة' : 'steps'}`}
           pct={stepsPct}
           color="var(--brand-500)"
           bg="rgba(255,107,45,0.12)"
         />
-
-        {/* Floating + button like screenshot bottom-right */}
         <button
           onClick={() => setFabOpen((v) => !v)}
           className="absolute -bottom-3 end-0 translate-x-1 h-10 w-10 rounded-xl bg-brand-500 text-white grid place-items-center shadow-[0_6px_16px_rgba(255,107,45,0.35)] border-2 border-bg"
@@ -159,7 +188,6 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Quick actions when fabOpen */}
       {fabOpen && (
         <div className="mt-6 flex flex-wrap gap-2 animate-[slide-up_0.2s_ease]">
           <Link to="/workouts" className="rounded-full bg-brand-500 text-white px-4 py-2 text-xs font-bold">
@@ -168,13 +196,13 @@ export default function Dashboard() {
           <Link to="/nutrition" className="rounded-full bg-surface border border-[var(--line)] px-4 py-2 text-xs font-bold">
             {t('dashboard.logFood')}
           </Link>
+          {/* Fixed: adds exactly 250ml, display now shows exact ml so no 300 confusion */}
           <button onClick={() => void addWater(250)} className="rounded-full bg-white border border-[var(--line)] px-4 py-2 text-xs font-bold">
-            {t('dashboard.addWater')}
+            {t('dashboard.addWater')} • 250ml
           </button>
         </div>
       )}
 
-      {/* Today's session like screenshot hidden but keep suggested workout */}
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-[14px] font-extrabold">{t('dashboard.todaySession')}</h2>
         <Link to="/workouts" className="text-xs font-bold text-brand-500 flex items-center gap-1">
@@ -194,8 +222,6 @@ export default function Dashboard() {
         </div>
         <span className="rounded-full bg-brand-500 text-white text-xs font-bold px-4 py-2">{t('workoutDetail.start')}</span>
       </Link>
-
-      {/* Health metrics hidden to keep screenshot clean but we keep weight trend optionally */}
     </div>
   )
 }
@@ -229,7 +255,7 @@ function ActivityCircleCard({
           </span>
         </div>
       </div>
-      <p className="text-[11px] font-bold text-ink-soft mt-1">{sub}</p>
+      <p className="text-[11px] font-bold text-ink-soft mt-1 text-center leading-tight">{sub}</p>
     </div>
   )
 }

@@ -158,6 +158,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: 'Conversation not found' })
     }
     conversationId = requestedConversationId
+    // Auto-title "New chat" conversations on first user message
+    const existingTitleRows = (await sql`SELECT title FROM conversations WHERE id = ${conversationId}`) as { title: string }[]
+    const currentTitle = existingTitleRows[0]?.title
+    const historyCount = (await sql`SELECT COUNT(*) as count FROM chat_messages WHERE conversation_id = ${conversationId}`) as { count: string }[]
+    const msgCount = Number(historyCount[0]?.count || 0)
+    if (currentTitle === 'New chat' && msgCount === 0) {
+      const newTitle = titleFromMessage(trimmedMessage)
+      await sql`UPDATE conversations SET title = ${newTitle} WHERE id = ${conversationId}`
+    }
   } else {
     const created = await sql`
       INSERT INTO conversations (user_id, title) VALUES (${user.id}, ${titleFromMessage(trimmedMessage)}) RETURNING id

@@ -1,9 +1,8 @@
-import { Camera } from 'lucide-react'
+import { Camera, Crown, Ruler, Scale, Calendar, Target, Activity, Mail, Sparkles, ShieldCheck } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 import { Select } from '@/components/ui/Select'
 import { activityLevels } from '@/lib/calculations'
 import type { ActivityLevel, Goal } from '@/store/useAppStore'
@@ -65,9 +64,7 @@ export default function Profile() {
       await updateProfile(form)
       setSaved(true)
       setTimeout(() => setSaved(false), 1800)
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
   async function handlePickAvatar(event: React.ChangeEvent<HTMLInputElement>) {
@@ -78,91 +75,125 @@ export default function Profile() {
     try {
       const dataUrl = await resizeImageToDataUrl(file, AVATAR_SIZE)
       setForm((f) => ({ ...f, avatarUrl: dataUrl }))
-    } catch {
-      setAvatarError(true)
-    }
+    } catch { setAvatarError(true) }
   }
 
+  const tierLabel = tier === 'pro' ? 'PRO • ÉLITE' : tier === 'premium' ? 'PREMIUM' : 'FREE'
+  const tierColor = tier === 'pro' ? 'from-amber-400 to-[#FF6B2D]' : tier === 'premium' ? 'from-[#FF6B2D] to-[#FF8C42]' : 'from-gray-400 to-gray-500'
+
   return (
-    <div className="max-w-lg mx-auto px-5 pt-8 pb-10 md:pt-10">
-      <div className="flex items-center gap-4">
-        <div className="relative h-16 w-16 shrink-0">
-          {form.avatarUrl ? (
-            <img
-              src={form.avatarUrl}
-              alt=""
-              className="h-16 w-16 rounded-2xl object-cover"
-            />
-          ) : (
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-2xl font-extrabold text-[var(--ink-on-brand)]">
-              {(form.name || user.name).slice(0, 1).toUpperCase()}
+    <div className="max-w-[560px] mx-auto px-4 pt-0 pb-10 md:px-6">
+      {/* Luxurious hero */}
+      <div className=" -mx-4 md:-mx-6 relative overflow-hidden bg-gradient-to-br from-[#1A1816] via-[#2A211C] to-[#FF6B2D] pt-8 pb-16 px-4 md:px-6">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.08),_transparent_60%)]" />
+        <div className="absolute -top-16 -end-16 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -bottom-12 -start-12 h-48 w-48 rounded-full bg-[#FF6B2D]/20 blur-3xl" />
+        <div className="relative flex items-start gap-4">
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-[22px] bg-gradient-to-br from-amber-300 via-[#FF6B2D] to-amber-500 opacity-70 blur-[1px]" />
+            <div className="relative h-[84px] w-[84px] rounded-[20px] overflow-hidden border-2 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.18)] bg-white">
+              {form.avatarUrl ? (
+                <img src={form.avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-[#FF6B2D] to-[#FF8C42] grid place-items-center text-3xl font-black text-white">
+                  {(form.name || user.name).slice(0, 1).toUpperCase()}
+                </div>
+              )}
             </div>
-          )}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label={t('profile.changePhoto')}
-            className="absolute -bottom-1 -end-1 grid h-6 w-6 place-items-center rounded-full bg-brand-500 text-[var(--ink-on-brand)] border-2 border-bg"
-          >
-            <Camera size={12} />
-          </button>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => void handlePickAvatar(e)} />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label={t('profile.changePhoto')}
+              className="absolute -bottom-2 -end-2 h-8 w-8 rounded-full bg-white text-ink grid place-items-center shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-[var(--line)] hover:scale-105 transition"
+            >
+              <Camera size={14} />
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => void handlePickAvatar(e)} />
+          </div>
+          <div className="flex-1 min-w-0 pt-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[18px] font-black text-white tracking-tight">{form.name || user.name}</h1>
+              <span className={`inline-flex items-center gap-1 rounded-full bg-gradient-to-r ${tierColor} px-2.5 py-1 text-[10px] font-black tracking-widest text-white shadow-sm`}>
+                <Crown size={10} /> {tierLabel}
+              </span>
+            </div>
+            <p className="text-sm text-white/70 flex items-center gap-1.5 mt-1 font-medium"><Mail size={12} /> {user.email}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-2.5 py-1 text-xs font-bold text-white border border-white/15">
+                <Sparkles size={12} className="text-amber-300" /> {t(`onboarding.goal.${form.goal}`)}
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/60"><ShieldCheck size={12} /> Verified</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-extrabold">{form.name || user.name}</h1>
-          <p className="text-sm text-ink-soft">{user.email}</p>
-          <span className="inline-block mt-1 rounded-full bg-brand-500/15 px-2.5 py-0.5 text-xs font-semibold text-brand-400 capitalize">
-            {tier}
-          </span>
+        {avatarError && <p className="relative mt-3 text-sm font-bold text-red-200 bg-red-500/20 border border-red-500/20 rounded-xl px-3 py-2">{t('profile.avatarError')}</p>}
+      </div>
+
+      {/* Stats quick glance — luxe */}
+      <div className=" -mt-8 relative grid grid-cols-3 gap-2">
+        <StatMini icon={<Scale size={14} />} label={t('profile.weightKg')} value={`${form.weightKg} kg`} />
+        <StatMini icon={<Ruler size={14} />} label={t('profile.heightCm')} value={`${form.heightCm} cm`} />
+        <StatMini icon={<Calendar size={14} />} label={t('profile.age')} value={`${form.age}`} />
+      </div>
+
+      {/* Form card — luxurious */}
+      <div className="mt-4 rounded-[24px] bg-white border border-[var(--line)] shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[var(--line)] bg-gradient-to-r from-[#FFF8EC] to-white flex items-center justify-between">
+          <h2 className="text-sm font-black tracking-tight flex items-center gap-2"><span className="h-6 w-1 rounded-full bg-[#FF6B2D]" /> {t('profile.title')}</h2>
+          <span className="text-[10px] font-black tracking-[0.12em] uppercase text-ink-faint flex items-center gap-1"><Activity size={12} /> ÉLÉGANCE</span>
+        </div>
+        <div className="p-5 flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-black tracking-[0.08em] uppercase text-ink-soft flex items-center gap-1.5"><Sparkles size={12} className="text-amber-500" /> {t('profile.name')}</span>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="rounded-full border border-[var(--line)] bg-[#FFF8EC] px-4 py-3 text-sm font-semibold outline-none focus:border-[#FF6B2D] focus:bg-white transition"
+              placeholder="Hamid Tlailia"
+            />
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <NumberField label={t('profile.weightKg')} value={form.weightKg} onChange={(v) => setForm((f) => ({ ...f, weightKg: v }))} icon={<Scale size={14} />} />
+            <NumberField label={t('profile.heightCm')} value={form.heightCm} onChange={(v) => setForm((f) => ({ ...f, heightCm: v }))} icon={<Ruler size={14} />} />
+            <NumberField label={t('profile.age')} value={form.age} onChange={(v) => setForm((f) => ({ ...f, age: v }))} icon={<Calendar size={14} />} />
+          </div>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-black tracking-[0.08em] uppercase text-ink-soft flex items-center gap-1.5"><Target size={12} className="text-amber-500" /> {t('profile.goal')}</span>
+            <Select
+              value={form.goal}
+              onChange={(value) => setForm((f) => ({ ...f, goal: value as Goal }))}
+              options={goals.map((goal) => ({ value: goal, label: t(`onboarding.goal.${goal}`) }))}
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-black tracking-[0.08em] uppercase text-ink-soft flex items-center gap-1.5"><Activity size={12} className="text-amber-500" /> {t('profile.activityLevel')}</span>
+            <Select
+              value={form.activityLevel}
+              onChange={(value) => setForm((f) => ({ ...f, activityLevel: value as ActivityLevel }))}
+              options={activityLevels.map((level) => ({ value: level, label: t(`profile.activity.${level}`) }))}
+            />
+          </label>
+
+          <Button onClick={() => void handleSave()} loading={saving} className="w-full mt-2 !rounded-full !py-3.5 !text-[14px] bg-gradient-to-r from-[#FF6B2D] to-[#FF8C42] border-0 shadow-[0_8px_24px_rgba(255,107,45,0.28)] hover:shadow-[0_12px_32px_rgba(255,107,45,0.32)]">
+            {saved ? `✓ ${t('profile.saved')}` : t('profile.save')}
+          </Button>
+          <p className="text-center text-[11px] font-medium text-ink-faint">التغييرات تُحدّث حساب السعرات تلقائياً • ÉLÉGANCE</p>
         </div>
       </div>
-      {avatarError && <p className="mt-2 text-sm text-red-400">{t('profile.avatarError')}</p>}
+    </div>
+  )
+}
 
-      <Card className="mt-6 flex flex-col gap-4">
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-ink-soft">{t('profile.name')}</span>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(event) => setForm((f) => ({ ...f, name: event.target.value }))}
-            className="rounded-xl border border-surface-2 bg-surface-2 px-3.5 py-2.5"
-          />
-        </label>
-
-        <NumberField
-          label={t('profile.weightKg')}
-          value={form.weightKg}
-          onChange={(v) => setForm((f) => ({ ...f, weightKg: v }))}
-        />
-        <NumberField
-          label={t('profile.heightCm')}
-          value={form.heightCm}
-          onChange={(v) => setForm((f) => ({ ...f, heightCm: v }))}
-        />
-        <NumberField label={t('profile.age')} value={form.age} onChange={(v) => setForm((f) => ({ ...f, age: v }))} />
-
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-ink-soft">{t('profile.goal')}</span>
-          <Select
-            value={form.goal}
-            onChange={(value) => setForm((f) => ({ ...f, goal: value as Goal }))}
-            options={goals.map((goal) => ({ value: goal, label: t(`onboarding.goal.${goal}`) }))}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-ink-soft">{t('profile.activityLevel')}</span>
-          <Select
-            value={form.activityLevel}
-            onChange={(value) => setForm((f) => ({ ...f, activityLevel: value as ActivityLevel }))}
-            options={activityLevels.map((level) => ({ value: level, label: t(`profile.activity.${level}`) }))}
-          />
-        </label>
-
-        <Button onClick={() => void handleSave()} loading={saving}>
-          {saved ? t('profile.saved') : t('profile.save')}
-        </Button>
-      </Card>
+function StatMini({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-white border border-[var(--line)] p-3 text-center shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
+      <div className="mx-auto h-7 w-7 rounded-full bg-[#FFF0DD] border border-amber-500/10 grid place-items-center text-amber-600">{icon}</div>
+      <p className="text-[10px] font-black tracking-wide uppercase text-ink-faint mt-1">{label}</p>
+      <p className="text-sm font-black tracking-tight">{value}</p>
     </div>
   )
 }
@@ -171,20 +202,17 @@ function NumberField({
   label,
   value,
   onChange,
+  icon,
 }: {
   label: string
   value: number
   onChange: (value: number) => void
+  icon?: React.ReactNode
 }) {
-  // Buffering the raw typed text (instead of binding straight to `value`)
-  // avoids a classic controlled-<input type="number"> bug: typing a leading
-  // zero (e.g. "0" then "83") parses to the same number as before, so React
-  // sees an unchanged prop and never corrects the DOM's displayed "083".
   const [text, setText] = useState(() => String(value))
-
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium text-ink-soft">{label}</span>
+    <label className="flex flex-col gap-1.5">
+      <span className="text-[11px] font-black tracking-[0.08em] uppercase text-ink-soft flex items-center gap-1">{icon} {label}</span>
       <input
         type="number"
         value={text}
@@ -194,7 +222,7 @@ function NumberField({
           const parsed = Number(next)
           if (next.trim() !== '' && Number.isFinite(parsed)) onChange(parsed)
         }}
-        className="rounded-xl border border-surface-2 bg-surface-2 px-3.5 py-2.5"
+        className="rounded-full border border-[var(--line)] bg-[#FFF8EC] px-4 py-3 text-sm font-semibold outline-none focus:border-[#FF6B2D] focus:bg-white transition"
       />
     </label>
   )
