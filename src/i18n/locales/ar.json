@@ -290,7 +290,13 @@
    "light": "فاتح",
    "dark": "ليلي فاخر",
    "system": "حسب الهاتف"
-  }
+  },
+  "compatibleWatches": "الساعات المتوافقة",
+  "huaweiWatchTitle": "Huawei Watch Fit 4 Pro وغيرها",
+  "huaweiWatchDesc": "ساعات هواوي لا تتصل مباشرة بـ Google Fit. استخدم تطبيق Health Sync أو Health Connect لمزامنة Huawei Health → Health Connect → Google Fit، وستظهر خطواتك ونبضك تلقائياً في التطبيق.",
+  "samsungWatchTitle": "Samsung Galaxy Watch",
+  "samsungWatchDesc": "ساعات سامسونج تزامن بياناتها عبر Samsung Health → Health Connect. فعّل المزامنة في Health Connect إلى Google Fit، ثم اربط Google Fit هنا.",
+  "wearablesHint": "أي ساعة أو سوار يزامن خطواته مع Google Fit عبر Health Connect سيعمل: Huawei، Samsung، Xiaomi، Garmin عبر تطبيقات وسيطة. قريباً سندعم Health Connect مباشرة بدون Google Fit."
  },
  "profile": {
   "title": "الملف الشخصي",

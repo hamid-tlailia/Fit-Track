@@ -96,18 +96,18 @@ function PlanCard({ type }: AiPlanCardProps) {
             <p className="text-[11px] text-ink-soft mb-3">
               {t('aiPlans.generatedOn', { date: new Date(plan.createdAt).toLocaleDateString(lang === 'ar' ? 'ar' : 'en-US') })}
             </p>
-            <div className="flex flex-wrap gap-2">
-              <Button className="flex-1 min-w-[170px]" onClick={handleDownload}>
+            <div className="flex items-center gap-2">
+              <Button className="flex-1 min-w-0" onClick={handleDownload}>
                 <Download size={15} /> {t('aiPlans.downloadPdf')}
               </Button>
               <Button
                 aria-label={t('aiPlans.regenerate')}
                 variant="secondary"
-                className="flex-1 min-w-[170px]"
+                className="h-10 w-10 !p-0 shrink-0 rounded-xl grid place-items-center"
                 onClick={() => void handleGenerate()}
                 loading={generating}
               >
-                <RefreshCw size={15} /> {t('aiPlans.regenerate')}
+                <RefreshCw size={16} />
               </Button>
             </div>
           </div>

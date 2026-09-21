@@ -59,7 +59,17 @@ export default function Profile() {
 
   if (!user) return null
 
+  const isDirty =
+    form.name !== (user.name ?? '') ||
+    form.weightKg !== (user.weightKg ?? 70) ||
+    form.heightCm !== (user.heightCm ?? 170) ||
+    form.age !== (user.age ?? 25) ||
+    form.goal !== (user.goal ?? 'stayFit') ||
+    form.activityLevel !== (user.activityLevel ?? 'moderate') ||
+    (form.avatarUrl ?? null) !== (user.avatarUrl ?? null)
+
   async function handleSave() {
+    if (!isDirty) return
     setSaving(true)
     try {
       await updateProfile(form)
@@ -180,7 +190,12 @@ export default function Profile() {
             />
           </label>
 
-          <Button onClick={() => void handleSave()} loading={saving} className="w-full mt-2 !rounded-full !py-3.5 !text-[14px] bg-gradient-to-r from-[#FF6B2D] to-[#FF8C42] border-0 shadow-[0_8px_24px_rgba(255,107,45,0.28)] hover:shadow-[0_12px_32px_rgba(255,107,45,0.32)]">
+          <Button
+            onClick={() => void handleSave()}
+            loading={saving}
+            disabled={!isDirty}
+            className="w-full mt-2 !rounded-full !py-3.5 !text-[14px] bg-gradient-to-r from-[#FF6B2D] to-[#FF8C42] border-0 shadow-[0_8px_24px_rgba(255,107,45,0.28)] hover:shadow-[0_12px_32px_rgba(255,107,45,0.32)] disabled:opacity-40 disabled:grayscale-[0.2]"
+          >
             {saved ? `✓ ${t('profile.saved')}` : t('profile.save')}
           </Button>
           <p className="text-center text-[11px] font-medium text-ink-faint">{t('profile.calorieHint')}</p>
