@@ -1,4 +1,5 @@
 import {
+  Bell,
   Dumbbell,
   Home,
   LineChart,
@@ -65,7 +66,7 @@ export function AppLayout() {
         {/* subtle top glow */}
         <div className="pointer-events-none absolute -top-24 -end-24 h-48 w-48 rounded-full bg-gradient-to-br from-brand-500/10 to-transparent blur-2xl" />
         <div className="flex items-center gap-3 px-2 py-5 relative">
-          <div className="h-10 w-10 rounded-[14px] bg-gradient-to-br from-[#FF6B2D] to-[#FF8C42] grid place-items-center text-white shadow-[0_4px_16px_rgba(255,107,45,0.28)] border border-white/20 relative overflow-hidden">
+          <div className="h-10 w-10 rounded-[14px] bg-gradient-to-br from-brand-500 to-brand-400 grid place-items-center text-white shadow-[var(--glow-brand)] border border-white/20 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
             <Dumbbell size={18} strokeWidth={2.5} className="relative" />
           </div>
@@ -90,7 +91,7 @@ export function AppLayout() {
           ))}
         </div>
         {/* Luxe Pro card */}
-        <div className="mt-4 rounded-[20px] bg-gradient-to-br from-[#1A1816] via-[#2A2420] to-[#FF6B2D] p-[1px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] relative overflow-hidden">
+        <div className="mt-4 rounded-[20px] bg-gradient-to-br from-[#1A1816] via-[#2A2420] to-brand-500 p-[1px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
           <div className="rounded-[19px] bg-gradient-to-br from-[#1A1816] to-[#2A211C] p-4 relative text-white">
             <div className="flex items-center gap-2">
@@ -110,7 +111,7 @@ export function AppLayout() {
       <header className="md:hidden shrink-0 flex items-center justify-between bg-surface/95 backdrop-blur-xl border-b border-[var(--line)] px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] relative">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-[11px] bg-gradient-to-br from-[#FF6B2D] to-[#FF8C42] grid place-items-center text-white shadow-[0_4px_12px_rgba(255,107,45,0.28)] border border-white/20 relative overflow-hidden">
+          <div className="h-8 w-8 rounded-[11px] bg-gradient-to-br from-brand-500 to-brand-400 grid place-items-center text-white shadow-[var(--glow-brand)] border border-white/20 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/25 to-transparent" />
             <Dumbbell size={15} strokeWidth={2.5} className="relative" />
           </div>
@@ -123,7 +124,7 @@ export function AppLayout() {
           <NavLink
             to="/coach"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-[#FF6B2D] text-white border-[#FF6B2D] shadow-[0_4px_12px_rgba(255,107,45,0.28)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-amber-500/20'}`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-brand-500 text-white border-brand-500 shadow-[var(--glow-brand)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-brand-500/30'}`
             }
             aria-label={t('nav.coach')}
           >
@@ -132,20 +133,20 @@ export function AppLayout() {
           <NavLink
             to="/settings"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-[#FF6B2D] text-white border-[#FF6B2D] shadow-[0_4px_12px_rgba(255,107,45,0.28)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-amber-500/20'}`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-brand-500 text-white border-brand-500 shadow-[var(--glow-brand)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-brand-500/30'}`
             }
             aria-label={t('nav.settings')}
           >
             <Settings size={16} strokeWidth={2} />
           </NavLink>
           <NavLink
-            to="/profile"
+            to="/notifications"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full border transition-all overflow-hidden ${isActive ? 'border-[#FF6B2D] ring-2 ring-amber-500/20' : 'border-[var(--line)] hover:border-amber-500/20'} bg-surface text-ink-soft`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-brand-500 text-white border-brand-500 shadow-[var(--glow-brand)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-brand-500/30'}`
             }
-            aria-label={t('nav.profile')}
+            aria-label={t('nav.notifications')}
           >
-            <User size={16} strokeWidth={2} />
+            <Bell size={16} strokeWidth={2} />
           </NavLink>
         </div>
       </header>
@@ -155,7 +156,7 @@ export function AppLayout() {
         <Outlet />
       </main>
 
-      {/* Mobile bottom nav — luxurious floating pill with active orange capsule */}
+      {/* Mobile bottom nav — the active theme color stays on the icon while the label remains readable */}
       <nav className="md:hidden shrink-0 pb-[env(safe-area-inset-bottom)] bg-surface border-t border-[var(--line)] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] relative">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent" />
         <div className="grid grid-cols-5 gap-1 px-2 py-2">
@@ -166,14 +167,18 @@ export function AppLayout() {
               end={end}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center gap-1 py-2 rounded-2xl text-[11px] font-bold transition-all duration-200 ${
-                  isActive
-                    ? 'bg-[#FF6B2D] text-white shadow-[0_4px_16px_rgba(255,107,45,0.28)]'
-                    : 'text-ink-soft hover:text-ink'
+                  isActive ? 'text-brand-500' : 'text-ink-soft hover:text-ink'
                 }`
               }
             >
-              <Icon size={18} strokeWidth={2.2} />
-              <span className="tracking-wide">{t(`nav.${labelKey}`)}</span>
+              {({ isActive }) => (
+                <>
+                  <span className={`grid h-9 w-9 place-items-center rounded-xl transition-all ${isActive ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]' : 'text-ink-soft'}`}>
+                    <Icon size={18} strokeWidth={2.2} />
+                  </span>
+                  <span className="tracking-wide">{t(`nav.${labelKey}`)}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>
@@ -192,7 +197,7 @@ function SideNavLink({ item, secondary }: { item: NavItem; secondary?: boolean }
       className={({ isActive }) =>
         `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-all ${
           isActive
-            ? 'bg-[#FF6B2D] text-white shadow-[0_4px_12px_rgba(255,107,45,0.22)]'
+            ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]'
             : secondary
               ? 'text-ink-faint hover:bg-surface-2 hover:text-ink border border-transparent hover:border-amber-500/10'
               : 'text-ink-soft hover:bg-surface-2 hover:text-ink border border-transparent hover:border-amber-500/10'

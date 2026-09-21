@@ -1,4 +1,4 @@
-import { Minus, Plus, Trash2, Search } from 'lucide-react'
+import { LoaderCircle, Minus, Plus, Trash2, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
@@ -35,6 +35,7 @@ export default function Nutrition() {
   const [meal, setMeal] = useState<LoggedFoodEntry['meal']>('breakfast')
   const [addingFood, setAddingFood] = useState(false)
   const [waterPending, setWaterPending] = useState(false)
+  const [deletingFoodId, setDeletingFoodId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
   const foodOptions = useMemo(() => {
@@ -95,6 +96,15 @@ export default function Nutrition() {
     }
   }
 
+  async function handleDeleteFood(id: string) {
+    setDeletingFoodId(id)
+    try {
+      await removeFoodEntry(id)
+    } finally {
+      setDeletingFoodId(null)
+    }
+  }
+
   const proteinPct = Math.min(100, Math.round((totals.protein / targets.proteinG) * 100))
   const carbsPct = Math.min(100, Math.round((totals.carbs / targets.carbsG) * 100))
   const fatPct = Math.min(100, Math.round((totals.fat / targets.fatG) * 100))
@@ -103,10 +113,9 @@ export default function Nutrition() {
     <div className="max-w-[560px] mx-auto px-4 pt-6 pb-6 md:pt-8 md:px-6">
       <h1 className="text-[22px] font-black tracking-tight">{t('nutrition.title')}</h1>
 
-      {/* Calories card like screenshot */}
+      {/* Keep the ring focused on the amount that remains. */}
       <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] p-5 shadow-sm">
-        <p className="text-sm font-extrabold">{t('nutrition.calories')}</p>
-        <div className="mt-4 flex justify-center">
+        <div className="flex justify-center">
           <div className="relative h-[160px] w-[160px]">
             {/* donut background arcs: use two overlapping radial charts for orange/yellow/blue like screenshot */}
             <RadialBarChart
@@ -116,7 +125,7 @@ export default function Nutrition() {
               outerRadius={78}
               barSize={12}
               data={[
-                { value: Math.min(100, Math.round((totals.calories / targets.calories) * 100)), fill: '#FF6B2D' },
+                { value: Math.min(100, Math.round((totals.calories / targets.calories) * 100)), fill: 'var(--brand-500)' },
               ]}
               startAngle={90}
               endAngle={-270}
@@ -158,14 +167,14 @@ export default function Nutrition() {
             <div className="absolute inset-0 grid place-items-center text-center">
               <div>
                 <p className="text-[28px] font-black leading-none tracking-tight">{countdown}</p>
-                <p className="text-xs font-bold text-ink-soft mt-1">{t('nutrition.remaining')}</p>
+                <p className="text-[11px] font-bold text-ink-soft mt-1 whitespace-nowrap">{t('nutrition.remaining')}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-5 space-y-3">
-          <MacroStrip label={t('nutrition.protein')} value={Math.round(totals.protein)} target={targets.proteinG} pct={proteinPct} color="#FF6B2D" />
+          <MacroStrip label={t('nutrition.protein')} value={Math.round(totals.protein)} target={targets.proteinG} pct={proteinPct} color="var(--brand-500)" />
           <MacroStrip label={t('nutrition.carbs')} value={Math.round(totals.carbs)} target={targets.carbsG} pct={carbsPct} color="#FFC24C" />
           <MacroStrip label={t('nutrition.fat')} value={Math.round(totals.fat)} target={targets.fatG} pct={fatPct} color="#4A90E2" />
         </div>
@@ -247,8 +256,14 @@ export default function Nutrition() {
                     {entry.grams} {t('common.grams')} · {t(`nutrition.meals.${entry.meal}`)} · {Math.round((food.kcalPer100g * entry.grams) / 100)} {t('common.kcal')}
                   </p>
                 </div>
-                <button onClick={() => void removeFoodEntry(entry.id)} className="h-8 w-8 grid place-items-center rounded-full hover:bg-surface-2 text-ink-soft">
-                  <Trash2 size={16} />
+                <button
+                  onClick={() => void handleDeleteFood(entry.id)}
+                  disabled={deletingFoodId === entry.id}
+                  aria-busy={deletingFoodId === entry.id}
+                  aria-label={t('nutrition.deleteFood')}
+                  className="h-8 w-8 grid place-items-center rounded-full hover:bg-surface-2 text-ink-soft disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deletingFoodId === entry.id ? <LoaderCircle size={16} className="animate-spin" /> : <Trash2 size={16} />}
                 </button>
               </li>
             )

@@ -1,5 +1,6 @@
-// Override without redeploying code when the provider retires a model.
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash'
+// Keep the default on a currently supported stable Flash model. It can still
+// be overridden per deployment when Google changes model availability.
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash'
 
 interface GeminiResponse {
   candidates?: {
@@ -21,18 +22,26 @@ export class GeminiError extends Error {
 
 /** Single-shot Gemini call: one system instruction, one user prompt, plain text back. */
 export async function callGemini(systemInstruction: string, userPrompt: string, history: { role: string; content: string }[] = []): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY
+  // GEMINI_API_KEY is the documented name. GOOGLE_API_KEY is accepted as a
+  // compatibility fallback for projects created directly in Google AI Studio.
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim()
   if (!apiKey) throw new GeminiError('not_configured', 'GEMINI_API_KEY is missing from this deployment')
+
+  const configuredModel = (process.env.GEMINI_MODEL || '').trim().replace(/^models\//, '')
+  const model = configuredModel || DEFAULT_GEMINI_MODEL
 
   let data: GeminiResponse
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL}:generateContent`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
-      signal: AbortSignal.timeout(25_000),
+      // Plans are intentionally concise, but a cold serverless function or a
+      // busy provider can still need more than the old 25-second cutoff.
+      signal: AbortSignal.timeout(50_000),
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemInstruction }] },
         contents: [...history.map((row) => ({ role: row.role === 'assistant' ? 'model' : 'user', parts: [{ text: row.content }] })), { role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
       }),
     })
     if (!res.ok) {
