@@ -8,6 +8,7 @@ interface PullToRefreshProps {
   threshold?: number
   className?: string
   disabled?: boolean
+  fill?: boolean
 }
 
 // Height of the pull indicator (circular badge + label). The content is held
@@ -275,7 +276,7 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
       {/* Content with pull translation. flex-1 lets full-height pages (e.g. the
           coach chat) pin their own header/input while the page scrolls. */}
       <div
-        className="flex-1"
+        className={fill ? 'flex-1 min-h-0 h-full flex flex-col overflow-hidden' : 'flex-1'}
         style={{
           transform: `translateY(${pull}px)`,
           transition: refreshing || pull === 0 ? 'transform 0.22s ease' : 'none',
