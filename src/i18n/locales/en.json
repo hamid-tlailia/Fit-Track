@@ -370,7 +370,13 @@
    "ai_timeout": "The AI service took too long to respond. Please try again."
   },
   "quickActionsTitle": "Quick actions",
-  "quickActionHint": "Try a quick action"
+  "quickActionHint": "Try a quick action",
+  "quickActions": {
+   "mealPlan": "Plan my meals for this week",
+   "adjustWorkout": "Adjust my workout plan",
+   "recovery": "Post-workout recovery tips",
+   "motivation": "Motivate me to train today"
+  }
  },
  "aiPlans": {
   "nutritionTitle": "AI Nutrition Plan",

@@ -370,7 +370,13 @@
    "ai_timeout": "استغرقت خدمة الذكاء الاصطناعي وقتًا طويلًا للرد. حاول مجددًا."
   },
   "quickActionsTitle": "تفاعل سريع",
-  "quickActionHint": "اختر إجراءً سريعًا"
+  "quickActionHint": "اختر إجراءً سريعًا",
+  "quickActions": {
+   "mealPlan": "خطّط لي وجبات هذا الأسبوع",
+   "adjustWorkout": "عدّل خطة تماريني",
+   "recovery": "نصائح للاستشفاء بعد التمرين",
+   "motivation": "حفّزني للتمرين اليوم"
+  }
  },
  "aiPlans": {
   "nutritionTitle": "خطة تغذية بالذكاء الاصطناعي",
