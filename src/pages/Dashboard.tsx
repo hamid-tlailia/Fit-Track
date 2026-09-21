@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, ChevronRight, Plus, Flame, HeartPulse } from 'lucide-react'
+import { ChevronRight, Plus, Flame, HeartPulse, Dumbbell, Salad, Droplets } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
@@ -39,7 +39,6 @@ export default function Dashboard() {
   const [fitTime, setFitTime] = useState(() => new Date())
   const [fitCalories, setFitCalories] = useState<number | null>(null)
   const [fitConnected, setFitConnected] = useState(false)
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
   const todayRef = useRef<HTMLDivElement>(null)
 
@@ -75,10 +74,6 @@ export default function Dashboard() {
     const onVis = () => { if (document.visibilityState === 'visible') fetchFit() }
     document.addEventListener('visibilitychange', onVis)
     return () => { cancelled = true; clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
-  }, [])
-
-  useEffect(() => {
-    api.get<{ unreadCount: number }>('/push?action=list').then((d) => setHasUnreadNotifications(d.unreadCount > 0)).catch(() => undefined)
   }, [])
 
   const isAr = i18n.language === 'ar'
@@ -148,10 +143,6 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
-        <Link to="/notifications" aria-label={t('notifications.title')} className="relative h-9 w-9 grid place-items-center rounded-full bg-surface border border-[var(--line)] text-ink-soft shadow-sm">
-          <Bell size={16} />
-          {hasUnreadNotifications && <span className="absolute top-1 end-1 h-2 w-2 rounded-full bg-brand-500" />}
-        </Link>
       </div>
 
       <div className="mt-5 flex gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-1">
@@ -229,12 +220,12 @@ export default function Dashboard() {
 
       <div className="home-fab fixed z-40 flex flex-col items-center gap-3">
         {fabOpen && <div id="home-actions" className="w-64 rounded-2xl border border-line bg-surface p-3 shadow-2xl flex flex-col gap-2 animate-[slide-up_0.2s_ease]">
-          <Link to="/workouts" className="rounded-xl bg-brand-500 text-white px-4 py-3 text-sm font-bold">{t('dashboard.startWorkout')}</Link>
-          <Link to="/nutrition" className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold">{t('dashboard.logFood')}</Link>
+          <Link to="/workouts" className="rounded-xl bg-brand-500 text-white px-4 py-3 text-sm font-bold flex items-center gap-2.5"><Dumbbell size={16} /> {t('dashboard.startWorkout')}</Link>
+          <Link to="/nutrition" className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold flex items-center gap-2.5"><Salad size={16} /> {t('dashboard.logFood')}</Link>
           <button disabled={waterBusy} onClick={async () => {
             setWaterBusy(true); setActionError(false)
             try { await addWater(250); setFabOpen(false) } catch { setActionError(true) } finally { setWaterBusy(false) }
-          }} className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold disabled:opacity-50">{waterBusy ? t('common.loading') : t('dashboard.addWater')}</button>
+          }} className="rounded-xl bg-surface-2 px-4 py-3 text-sm font-bold disabled:opacity-50 flex items-center gap-2.5"><Droplets size={16} /> {waterBusy ? t('common.loading') : t('dashboard.addWater')}</button>
           {actionError && <p role="alert" className="text-xs text-red-500">{t('common.saveError')}</p>}
         </div>}
         <button onClick={() => setFabOpen((v) => !v)} aria-label={fabOpen ? t('common.close') : t('dashboard.quickActions')} aria-expanded={fabOpen} aria-controls="home-actions"

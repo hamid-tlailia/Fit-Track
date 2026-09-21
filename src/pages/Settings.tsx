@@ -1,4 +1,4 @@
-import { Activity, Bell, Check, Download, LogOut, Trash2, Volume2 } from 'lucide-react'
+import { Activity, Bell, Check, Download, LogOut, Trash2, Volume2, Watch, Smartphone } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -305,6 +305,28 @@ export default function Settings() {
                 {t('settings.connect')}
               </button>
             )}
+          </div>
+
+          {/* Huawei & Samsung support via Health Connect / Google Fit bridge */}
+          <div className="mt-4 rounded-xl bg-surface-2 border border-[var(--line)] p-3">
+            <p className="text-xs font-black tracking-wide flex items-center gap-1.5 mb-2"><Watch size={14} className="text-brand-500" /> {t('settings.compatibleWatches')}</p>
+            <div className="grid gap-2">
+              <div className="flex gap-2.5 items-start">
+                <div className="h-8 w-8 rounded-lg bg-surface border border-[var(--line)] grid place-items-center shrink-0"><Watch size={14} /></div>
+                <div>
+                  <p className="text-xs font-bold">{t('settings.huaweiWatchTitle')}</p>
+                  <p className="text-[11px] text-ink-soft leading-relaxed">{t('settings.huaweiWatchDesc')}</p>
+                </div>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <div className="h-8 w-8 rounded-lg bg-surface border border-[var(--line)] grid place-items-center shrink-0"><Smartphone size={14} /></div>
+                <div>
+                  <p className="text-xs font-bold">{t('settings.samsungWatchTitle')}</p>
+                  <p className="text-[11px] text-ink-soft leading-relaxed">{t('settings.samsungWatchDesc')}</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-[11px] text-ink-faint mt-2 leading-relaxed">{t('settings.wearablesHint')}</p>
           </div>
         </PremiumGate>
       </Card>

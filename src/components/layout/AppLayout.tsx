@@ -157,26 +157,26 @@ export function AppLayout() {
       </main>
 
       {/* Mobile bottom nav — the active theme color stays on the icon while the label remains readable */}
-      <nav className="md:hidden shrink-0 pb-[env(safe-area-inset-bottom)] bg-surface border-t border-[var(--line)] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] relative">
+      <nav className="md:hidden shrink-0 bg-surface border-t border-[var(--line)] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] relative pb-[env(safe-area-inset-bottom)]">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent" />
-        <div className="grid grid-cols-5 gap-1 px-2 py-2">
+        <div className="grid grid-cols-5 gap-0.5 px-1 pt-1.5 pb-1">
           {mainNavItems.map(({ to, icon: Icon, labelKey, end }) => (
             <NavLink
               key={labelKey}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-1 py-2 rounded-2xl text-[11px] font-bold transition-all duration-200 ${
+                `flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl text-[10px] font-bold leading-none transition-all duration-200 ${
                   isActive ? 'text-brand-500' : 'text-ink-soft hover:text-ink'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <span className={`grid h-9 w-9 place-items-center rounded-xl transition-all ${isActive ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]' : 'text-ink-soft'}`}>
-                    <Icon size={18} strokeWidth={2.2} />
+                  <span className={`grid h-7 w-7 place-items-center rounded-lg transition-all ${isActive ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]' : 'text-ink-soft'}`}>
+                    <Icon size={17} strokeWidth={2.2} />
                   </span>
-                  <span className="tracking-wide">{t(`nav.${labelKey}`)}</span>
+                  <span className="tracking-wide text-[10px]">{t(`nav.${labelKey}`)}</span>
                 </>
               )}
             </NavLink>

@@ -109,9 +109,11 @@ body.app-shell-locked {
   overscroll-behavior: none;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: #E8DDD0; border-radius: 9999px; }
-::-webkit-scrollbar-track { background: transparent; }
+/* Hide scrollbars globally — requirement: remove scrollbar line from whole app */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
+html, body { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -172,7 +174,7 @@ body { transition: background-color .2s, color .2s; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
-.home-fab { left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+.home-fab { left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 @media (min-width: 768px) {
   .home-fab { left: calc(50% + 143px); bottom: 24px; }
   [dir="rtl"] .home-fab { left: calc(50% - 143px); }

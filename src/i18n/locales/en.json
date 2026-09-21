@@ -290,7 +290,13 @@
    "light": "Light",
    "dark": "Midnight",
    "system": "Device settings"
-  }
+  },
+  "compatibleWatches": "Compatible watches",
+  "huaweiWatchTitle": "Huawei Watch Fit 4 Pro & others",
+  "huaweiWatchDesc": "Huawei watches don't connect directly to Google Fit. Use Health Sync or Health Connect to sync Huawei Health → Health Connect → Google Fit, and your steps/HR will appear automatically.",
+  "samsungWatchTitle": "Samsung Galaxy Watch",
+  "samsungWatchDesc": "Samsung watches sync via Samsung Health → Health Connect. Enable Health Connect sync to Google Fit, then connect Google Fit here.",
+  "wearablesHint": "Any watch that syncs steps to Google Fit via Health Connect works: Huawei, Samsung, Xiaomi, Garmin via bridge apps. Native Health Connect support is coming soon without needing Google Fit."
  },
  "profile": {
   "title": "Profile",
