@@ -1,9 +1,13 @@
 import {
   Check,
+  Dumbbell,
+  Flame,
+  HeartPulse,
   Pencil,
   Plus,
   Sparkles,
   Trash2,
+  UtensilsCrossed,
   X,
   Send,
   LoaderCircle,
@@ -30,6 +34,15 @@ interface Conversation {
   title: string
   updatedAt: string
 }
+
+// Quick-reply chips shown after the coach's latest message — tapping one sends
+// its label as the next user message.
+const quickActions = [
+  { icon: UtensilsCrossed, key: 'mealPlan' },
+  { icon: Dumbbell, key: 'adjustWorkout' },
+  { icon: HeartPulse, key: 'recovery' },
+  { icon: Flame, key: 'motivation' },
+] as const
 
 function CoachChat() {
   const { t, i18n } = useTranslation()
@@ -125,8 +138,10 @@ function CoachChat() {
 
   async function handleSubmit(e: FormEvent) { e.preventDefault(); await sendMessage(input) }
 
+  const lastMessage = messages[messages.length - 1]
+
   return (
-    <div className="relative flex h-full flex-col bg-bg">
+    <div className="relative flex h-full min-h-0 flex-col bg-bg">
       {/* Header like screenshot */}
       <div className="shrink-0 border-b border-[var(--line)] bg-surface">
         <div className="max-w-[560px] mx-auto w-full flex items-center justify-between px-4 py-3.5">
@@ -142,8 +157,8 @@ function CoachChat() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-[560px] mx-auto w-full px-4 py-4 flex flex-col gap-3">
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className={`max-w-[560px] mx-auto w-full px-4 py-4 flex flex-col gap-3 ${messages.length === 0 ? 'min-h-full justify-center' : ''}`}>
           {!loaded && <div role="status" className="flex justify-center gap-2 text-ink-soft"><LoaderCircle className="animate-spin" size={18} />{t('common.loading')}</div>}
           {loaded && messages.length === 0 && (
             <div className="text-center py-12">
@@ -180,6 +195,23 @@ function CoachChat() {
               </div>
             )
           })}
+
+          {/* Quick actions — simple interactive chips after the coach's latest reply */}
+          {loaded && !sending && lastMessage?.role === 'assistant' && (
+            <div role="group" aria-label={t('coach.quickActionsTitle')} className="flex flex-wrap gap-2 ps-9">
+              {quickActions.map(({ icon: Icon, key }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => void sendMessage(t(`coach.quickActions.${key}`))}
+                  className="flex items-center gap-1.5 rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1.5 text-xs font-bold text-brand-600 transition-all hover:border-brand-500 hover:bg-brand-500 hover:text-white active:scale-95"
+                >
+                  <Icon size={13} strokeWidth={2.2} />
+                  {t(`coach.quickActions.${key}`)}
+                </button>
+              ))}
+            </div>
+          )}
 
           {sending && (
             <div className="flex gap-2 items-start">

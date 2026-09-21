@@ -10,6 +10,10 @@ interface PullToRefreshProps {
   disabled?: boolean
 }
 
+// Height of the pull indicator (circular badge + label). The content is held
+// at this offset while a refresh is in flight so the badge stays fully visible.
+const INDICATOR_HEIGHT = 80
+
 export function PullToRefresh({ children, onRefresh, threshold = 80, className = '', disabled = false }: PullToRefreshProps) {
   const { t, i18n } = useTranslation()
   const isAr = i18n.language === 'ar'
@@ -27,9 +31,9 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
     if (refreshingRef.current) return
     setRefreshing(true)
     refreshingRef.current = true
-    // Keep indicator visible at 60px during refresh
-    setPull(60)
-    pullRef.current = 60
+    // Keep indicator fully visible during refresh
+    setPull(INDICATOR_HEIGHT)
+    pullRef.current = INDICATOR_HEIGHT
 
     try {
       if (onRefresh) {
@@ -61,8 +65,25 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
 
     let startY = 0
     let isPulling = false
+    // If the gesture started inside a nested scrollable region (e.g. the chat
+    // message list), that region scrolls first — the page only pulls when the
+    // inner region is at its top too.
+    let innerScrollable: HTMLElement | null = null
+
+    const findInnerScrollable = (target: EventTarget | null): HTMLElement | null => {
+      let node = target instanceof HTMLElement ? target : null
+      while (node && node !== el) {
+        if (node.scrollHeight > node.clientHeight) {
+          const overflowY = window.getComputedStyle(node).overflowY
+          if (overflowY === 'auto' || overflowY === 'scroll') return node
+        }
+        node = node.parentElement
+      }
+      return null
+    }
 
     const isAtTop = () => {
+      if (innerScrollable && innerScrollable.scrollTop > 0) return false
       // Check both container scroll and window scroll for flexibility
       const containerAtTop = el.scrollTop <= 0
       const windowAtTop = typeof window !== 'undefined' ? window.scrollY <= 0 : true
@@ -72,8 +93,16 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
       return containerAtTop && windowAtTop
     }
 
+    const cancelPull = () => {
+      isPulling = false
+      startYRef.current = null
+      setPull(0)
+      pullRef.current = 0
+    }
+
     const onTouchStart = (e: TouchEvent) => {
       if (refreshingRef.current) return
+      innerScrollable = findInnerScrollable(e.target)
       if (isAtTop()) {
         startY = e.touches[0].clientY
         startYRef.current = startY
@@ -83,6 +112,11 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
 
     const onTouchMove = (e: TouchEvent) => {
       if (!isPulling || refreshingRef.current || startYRef.current === null) return
+      // The inner region won the gesture and started scrolling — cancel the pull.
+      if (innerScrollable && innerScrollable.scrollTop > 0) {
+        cancelPull()
+        return
+      }
       const currentY = e.touches[0].clientY
       const diff = currentY - startYRef.current
 
@@ -100,15 +134,13 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
       } else {
         // If user scrolls up or container scrolled, cancel pulling
         if (diff < 0) {
-          isPulling = false
-          startYRef.current = null
-          setPull(0)
-          pullRef.current = 0
+          cancelPull()
         }
       }
     }
 
     const onTouchEnd = () => {
+      innerScrollable = null
       if (!isPulling) return
       isPulling = false
       const currentPull = pullRef.current
@@ -189,7 +221,7 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
   return (
     <div
       ref={containerRef}
-      className={`relative ${className}`}
+      className={`relative flex flex-col ${className}`}
       style={{ overscrollBehaviorY: 'contain' as const }}
     >
       {/* Pull indicator */}
@@ -197,21 +229,37 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
         className="pointer-events-none absolute left-0 right-0 z-10 flex justify-center"
         style={{
           top: 0,
-          height: '60px',
-          transform: `translateY(${pull - 60}px)`,
+          height: `${INDICATOR_HEIGHT}px`,
+          transform: `translateY(${pull - INDICATOR_HEIGHT}px)`,
           opacity: pull > 5 || refreshing ? 1 : 0,
           transition: refreshing || pull === 0 ? 'transform 0.22s ease, opacity 0.22s ease' : 'none',
         }}
       >
-        <div className="flex flex-col items-center justify-center gap-1 py-2">
+        <div className="flex flex-col items-center justify-center gap-1.5 py-2">
+          {/* Circular badge: a white disc ringed by a progress track that fills
+              with the brand color as the user pulls, so the icon always sits
+              on a clearly visible circular background. */}
           <div
-            className="h-8 w-8 rounded-full bg-surface border border-[var(--line)] shadow-sm grid place-items-center"
+            className="relative grid h-11 w-11 place-items-center rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.16)]"
             style={{
-              transform: `rotate(${pull * 2.5}deg)`,
-              transition: refreshing ? 'none' : 'transform 0.1s linear',
+              background: `conic-gradient(var(--brand-500) ${(refreshing ? 1 : progress) * 360}deg, var(--line) 0deg)`,
             }}
           >
-            <RefreshCw size={16} className={`${refreshing ? 'animate-spin' : ''} text-brand-500`} />
+            <div
+              className={`absolute inset-[3px] grid place-items-center rounded-full transition-colors duration-150 ${
+                showRelease || refreshing ? 'bg-brand-500' : 'bg-surface'
+              }`}
+            >
+              <RefreshCw
+                size={17}
+                strokeWidth={2.4}
+                className={`${refreshing ? 'animate-spin' : ''} ${showRelease || refreshing ? 'text-white' : 'text-brand-500'}`}
+                style={{
+                  transform: refreshing ? undefined : `rotate(${pull * 2.5}deg)`,
+                  transition: refreshing || pull === 0 ? 'transform 0.2s ease' : 'none',
+                }}
+              />
+            </div>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-bold text-ink-soft tracking-wide">{text}</span>
@@ -224,8 +272,10 @@ export function PullToRefresh({ children, onRefresh, threshold = 80, className =
         </div>
       </div>
 
-      {/* Content with pull translation */}
+      {/* Content with pull translation. flex-1 lets full-height pages (e.g. the
+          coach chat) pin their own header/input while the page scrolls. */}
       <div
+        className="flex-1"
         style={{
           transform: `translateY(${pull}px)`,
           transition: refreshing || pull === 0 ? 'transform 0.22s ease' : 'none',
