@@ -10,7 +10,9 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
-    signal: AbortSignal.timeout(45_000),
+    // AI plan generation can be slower on a cold serverless function; keep
+    // the browser timeout just above the provider's server-side timeout.
+    signal: AbortSignal.timeout(55_000),
     ...options,
     credentials: 'include',
     headers: {

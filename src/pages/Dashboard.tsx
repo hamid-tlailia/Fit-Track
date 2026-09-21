@@ -118,13 +118,19 @@ export default function Dashboard() {
     <div className="max-w-[560px] mx-auto px-4 pt-5 pb-28 md:pt-8 md:px-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover border border-[var(--line)]" />
-          ) : (
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-brand-500 grid place-items-center text-white font-black text-sm">
-              {initial}
-            </div>
-          )}
+          <Link
+            to="/profile"
+            aria-label={t('nav.profile')}
+            className="shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover border border-[var(--line)]" />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-500 grid place-items-center text-white font-black text-sm">
+                {initial}
+              </div>
+            )}
+          </Link>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-[15px] font-extrabold leading-none">{user?.name ?? ''}</h1>
@@ -157,11 +163,11 @@ export default function Dashboard() {
               key={d.toISOString()}
               ref={isToday ? todayRef : undefined}
               className={`flex flex-col items-center justify-center rounded-2xl min-w-[68px] flex-1 px-2 py-2 border text-center ${
-                isToday ? 'bg-surface border-brand-500 text-ink shadow-sm' : 'bg-surface border-[var(--line)] text-ink-soft'
+                isToday ? 'bg-brand-500 border-brand-500 text-white shadow-[var(--glow-brand)]' : 'bg-surface border-[var(--line)] text-ink-soft'
               }`}
             >
               <span className="text-[11px] font-bold">{dayLetter}</span>
-              <span className={`text-[13px] font-extrabold mt-0.5 h-7 w-7 grid place-items-center rounded-full ${isToday ? 'bg-brand-500 text-white' : ''}`}>
+              <span className={`text-[13px] font-extrabold mt-0.5 h-7 w-7 grid place-items-center rounded-full ${isToday ? 'bg-white/20 text-white' : ''}`}>
                 {d.getDate()}
               </span>
             </div>

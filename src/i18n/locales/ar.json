@@ -149,6 +149,7 @@
   "add": "إضافة",
   "log": "سجل اليوم",
   "noEntries": "لم تسجّل أي طعام اليوم بعد.",
+  "deleteFood": "حذف الوجبة",
   "meals": {
    "breakfast": "فطور",
    "lunch": "غداء",
@@ -165,7 +166,7 @@
    "legume": "بقوليات",
    "mixedDish": "أطباق مشكّلة"
   },
-  "remaining": "السعرات المتبقية"
+  "remaining": "المتبقية"
  },
  "notifications": {
   "title": "الإشعارات",

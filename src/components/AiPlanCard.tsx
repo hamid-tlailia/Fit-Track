@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PremiumGate } from '@/components/PremiumGate'
 import { ApiError, api } from '@/lib/api'
-import { markdownToHtml, printAsPdf } from '@/lib/pdf'
+import { printAsPdf } from '@/lib/pdf'
 
 interface Plan {
   id: string
@@ -96,13 +96,18 @@ function PlanCard({ type }: AiPlanCardProps) {
             <p className="text-[11px] text-ink-soft mb-3">
               {t('aiPlans.generatedOn', { date: new Date(plan.createdAt).toLocaleDateString(lang === 'ar' ? 'ar' : 'en-US') })}
             </p>
-            <div dir={plan.language === 'ar' ? 'rtl' : 'ltr'} className="chat-markdown text-sm max-h-72 overflow-y-auto mb-4 rounded-xl bg-surface-2 p-3" dangerouslySetInnerHTML={{ __html: markdownToHtml(plan.content) }} />
             <div className="flex flex-wrap gap-2">
-              <Button className="flex-1" onClick={handleDownload}>
+              <Button className="flex-1 min-w-[170px]" onClick={handleDownload}>
                 <Download size={15} /> {t('aiPlans.downloadPdf')}
               </Button>
-              <Button aria-label={t('aiPlans.regenerate')} variant="secondary" onClick={() => void handleGenerate()} loading={generating}>
-                <RefreshCw size={15} />
+              <Button
+                aria-label={t('aiPlans.regenerate')}
+                variant="secondary"
+                className="flex-1 min-w-[170px]"
+                onClick={() => void handleGenerate()}
+                loading={generating}
+              >
+                <RefreshCw size={15} /> {t('aiPlans.regenerate')}
               </Button>
             </div>
           </div>

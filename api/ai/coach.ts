@@ -143,10 +143,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'message is required' })
   }
 
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim()
   if (!apiKey) {
     return res.status(503).json({
-      error: 'The AI coach is not configured yet — a GEMINI_API_KEY is missing from this deployment.',
+      error: 'The AI coach is not configured yet — set GEMINI_API_KEY on the server.',
       code: 'ai_not_configured',
     })
   }

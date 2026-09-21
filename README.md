@@ -51,9 +51,10 @@ functions alongside Vite.
 ## AI and device configuration
 
 - Set `GEMINI_API_KEY` **on the server** for coaching, training/nutrition plans,
-  and AI reminders. `GEMINI_MODEL` can override the default `gemini-3.6-flash`
-  with a model available to your Google project. Both chat and plans share the
-  same client, a 25-second provider timeout, and explicit configuration/service
+  and AI reminders. `GEMINI_MODEL` can override the default `gemini-3.8-flash`
+  with a model available to your Google project. `GOOGLE_API_KEY` is also
+  accepted as a compatibility fallback. Both chat and plans share the same
+  client, a 50-second provider timeout, and explicit configuration/service
   errors. Never expose these variables through a `VITE_` prefix.
 - The AI functions have a 60-second Vercel budget. Plain `npm run dev` serves
   the frontend only; use `vercel dev` with your database and server environment

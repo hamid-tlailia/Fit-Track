@@ -31,34 +31,9 @@ interface Conversation {
   updatedAt: string
 }
 
-interface QuickAction {
-  label: string
-  prompt: string
-}
-
-function useQuickActions(): QuickAction[] {
-  const { i18n } = useTranslation()
-  const isAr = i18n.language === 'ar'
-  if (isAr) {
-    return [
-      { label: 'ابدأ خطة تمرين', prompt: 'أنشئ لي خطة تمرين أسبوعية' },
-      { label: 'سجّل السعرات', prompt: 'ساعدني في تسجيل السعرات لليوم' },
-      { label: 'اسأل سؤالاً', prompt: 'لدي سؤال عن التغذية والتمارين' },
-      { label: 'السجل', prompt: 'اعرض سجل المحادثات السابقة' },
-    ]
-  }
-  return [
-    { label: 'Start Workout Plan', prompt: 'Create a workout plan for me' },
-    { label: 'Log Calories', prompt: 'Help me log my calories for today' },
-    { label: 'Ask Question', prompt: 'I have a question about fitness and nutrition' },
-    { label: 'History', prompt: 'Show my conversation history' },
-  ]
-}
-
 function CoachChat() {
   const { t, i18n } = useTranslation()
   const isAr = i18n.language === 'ar'
-  const quickActions = useQuickActions()
   const [conversations, setConversations] = useState<Conversation[] | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -149,10 +124,6 @@ function CoachChat() {
   }
 
   async function handleSubmit(e: FormEvent) { e.preventDefault(); await sendMessage(input) }
-  async function handleQuick(prompt: string) { await sendMessage(prompt) }
-
-  const lastIsAssistant = messages.length > 0 && messages[messages.length - 1]?.role === 'assistant'
-  const showQuick = lastIsAssistant && !sending && loaded
 
   return (
     <div className="relative flex h-full flex-col bg-bg">
@@ -171,13 +142,6 @@ function CoachChat() {
         </div>
       </div>
 
-      {/* Top orange pill like screenshot: رفاق إجراءات (upper) */}
-      <div className="max-w-[560px] mx-auto w-full px-4 pt-3 flex justify-end">
-        <span className="inline-flex items-center rounded-full bg-[#FF6B2D] text-white text-xs font-bold px-3.5 py-1.5 shadow-sm">
-          {t('coach.quickActionsTitle')}
-        </span>
-      </div>
-
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-[560px] mx-auto w-full px-4 py-4 flex flex-col gap-3">
           {!loaded && <div role="status" className="flex justify-center gap-2 text-ink-soft"><LoaderCircle className="animate-spin" size={18} />{t('common.loading')}</div>}
@@ -193,7 +157,6 @@ function CoachChat() {
 
           {messages.map((message, index) => {
             const isUser = message.role === 'user'
-            const isLast = index === messages.length - 1
             return (
               <div key={index} dir="auto" className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
                 {/* avatar + bubble like screenshot for assistant */}
@@ -209,31 +172,11 @@ function CoachChat() {
                   </div>
                 )}
                 {isUser && (
-                  <div className="max-w-[82%] rounded-2xl bg-[#FF6B2D] text-white px-4 py-3 text-[13px] leading-6 rounded-br-md shadow-sm">
+                  <div className="max-w-[82%] rounded-2xl bg-brand-500 text-white px-4 py-3 text-[13px] leading-6 rounded-br-md shadow-sm">
                     <p className="whitespace-pre-wrap">{message.content}</p>
                   </div>
                 )}
 
-                {isLast && !isUser && showQuick && (
-                  <div className="w-full mt-3">
-                    <div className="flex justify-end mb-2">
-                      <span className="inline-flex items-center rounded-full bg-[#FF6B2D] text-white text-xs font-bold px-3 py-1.5">
-                        {t('coach.quickActionsTitle')}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {quickActions.map((qa) => (
-                        <button
-                          key={qa.label}
-                          onClick={() => qa === quickActions[3] ? (refreshConversations(), setHistoryOpen(true)) : void handleQuick(qa.prompt)}
-                          className="rounded-full bg-surface border border-[var(--line)] px-3.5 py-2 text-xs font-bold text-ink hover:border-brand-500 hover:text-brand-500 transition"
-                        >
-                          {qa.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             )
           })}
@@ -267,7 +210,7 @@ function CoachChat() {
             placeholder={t('coach.placeholder')}
             className="flex-1 rounded-full border border-[var(--line)] bg-surface-2 px-4 py-2.5 text-sm outline-none focus:border-brand-500 placeholder:text-ink-faint"
           />
-          <button type="submit" aria-label={t('coach.send')} disabled={sending || !loaded || !input.trim()} className="h-10 w-10 grid place-items-center rounded-full bg-[#FF6B2D] text-white disabled:opacity-40 shrink-0">
+          <button type="submit" aria-label={t('coach.send')} disabled={sending || !loaded || !input.trim()} className="h-10 w-10 grid place-items-center rounded-full bg-brand-500 text-white disabled:opacity-40 shrink-0">
             <Send size={16} className="rtl:rotate-180 ms-0.5" />
           </button>
         </form>
@@ -276,7 +219,9 @@ function CoachChat() {
       {historyOpen && (
         <div role="dialog" aria-modal="true" aria-label={t('coach.history')} className="absolute inset-0 z-50">
           <button type="button" aria-label={t('common.close')} onClick={() => setHistoryOpen(false)} className="absolute inset-0 w-full bg-black/40 backdrop-blur-sm" />
-          <div className={`absolute inset-y-0 right-0 w-[320px] max-w-[82%] bg-surface flex flex-col shadow-2xl border-l border-line animate-[slide-in-right_0.25s_ease]`}>
+          <div
+            className={`absolute inset-y-0 ${isAr ? 'right-0 border-l animate-[slide-in-right_0.25s_ease]' : 'left-0 border-r animate-[slide-in-left_0.25s_ease]'} w-[320px] max-w-[82%] bg-surface flex flex-col shadow-2xl border-[var(--line)]`}
+          >
             <div className="flex items-center justify-between p-4 border-b border-[var(--line)]">
               <h2 className="font-black text-sm">{t('coach.history')}</h2>
               <button onClick={() => setHistoryOpen(false)} className="h-8 w-8 grid place-items-center rounded-full border border-[var(--line)]"><X size={14} /></button>

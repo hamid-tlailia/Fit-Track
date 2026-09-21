@@ -149,6 +149,7 @@
   "add": "Add",
   "log": "Today's log",
   "noEntries": "No food logged yet today.",
+  "deleteFood": "Delete meal",
   "meals": {
    "breakfast": "Breakfast",
    "lunch": "Lunch",
@@ -165,7 +166,7 @@
    "legume": "Legumes",
    "mixedDish": "Mixed Dishes"
   },
-  "remaining": "Calories remaining"
+  "remaining": "Remaining"
  },
  "notifications": {
   "title": "Notifications",
