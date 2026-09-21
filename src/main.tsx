@@ -6,11 +6,20 @@ import { registerSW } from 'virtual:pwa-register'
 import App from './App.tsx'
 import i18n, { applyDocumentDirection } from './i18n'
 import './index.css'
-import { applyTheme } from './lib/themes'
+import { applyColorMode, applyTheme } from './lib/themes'
 import { useAppStore } from './store/useAppStore'
 
 applyDocumentDirection(i18n.language)
 applyTheme(useAppStore.getState().theme)
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)')
+const syncAppearance = () => {
+  const { theme, colorMode } = useAppStore.getState()
+  applyTheme(theme)
+  applyColorMode(colorMode, systemDark.matches)
+}
+syncAppearance()
+systemDark.addEventListener('change', syncAppearance)
+useAppStore.subscribe(syncAppearance)
 
 if (import.meta.env.PROD) registerSW({ immediate: true })
 

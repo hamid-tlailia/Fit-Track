@@ -1,4 +1,4 @@
-import type { ThemeId } from '@/store/useAppStore'
+import type { ColorMode, ThemeId } from '@/store/useAppStore'
 
 export interface ThemeDefinition {
   id: ThemeId
@@ -21,4 +21,8 @@ export function applyTheme(theme: ThemeId) {
   } else {
     document.documentElement.setAttribute('data-theme', theme)
   }
+}
+
+export function applyColorMode(mode: ColorMode, systemDark: boolean) {
+  document.documentElement.dataset.mode = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode
 }

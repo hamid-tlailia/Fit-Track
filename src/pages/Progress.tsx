@@ -17,7 +17,7 @@ function lastNDays(n: number): string[] {
 }
 
 export default function Progress() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const weightEntries = useTrackerStore((state) => state.weightEntries)
   const addWeightEntry = useTrackerStore((state) => state.addWeightEntry)
   const completedWorkouts = useTrackerStore((state) => state.completedWorkouts)
@@ -30,33 +30,14 @@ export default function Progress() {
   const [addingWeight, setAddingWeight] = useState(false)
   const [addingPR, setAddingPR] = useState(false)
 
-  const weightData = weightEntries.length
-    ? weightEntries.map((entry) => ({ date: entry.dateISO.slice(5, 10), kg: entry.kg }))
-    : [
-        { date: '09-17', kg: 82.5 },
-        { date: '09-19', kg: 82.8 },
-        { date: '09-21', kg: 82.5 },
-        { date: '09-23', kg: 82.75 },
-        { date: '09-25', kg: 83 },
-      ]
-  const latestWeight = weightEntries.at(-1)?.kg ?? 82
+  const weightData = weightEntries.map((entry) => ({ date: entry.dateISO.slice(5, 10), kg: entry.kg }))
+  const latestWeight = weightEntries.at(-1)?.kg ?? '—'
 
   const days = lastNDays(7)
   const activityData = days.map((day) => ({
     date: day.slice(5, 10),
-    calories: completedWorkouts.filter((w) => dateKeyOf(w.dateISO) === day).reduce((sum, w) => sum + w.calories, 0) || Math.floor(Math.random() * 6) + 1,
+    calories: completedWorkouts.filter((w) => dateKeyOf(w.dateISO) === day).reduce((sum, w) => sum + w.calories, 0),
   }))
-  // if no real data, use screenshot-like values
-  const displayActivityData = completedWorkouts.length ? activityData : [
-    { date: 'M', calories: 6.2 },
-    { date: 'T', calories: 6.5 },
-    { date: 'W', calories: 3.5 },
-    { date: 'T', calories: 6.2 },
-    { date: 'F', calories: 6.7 },
-    { date: 'S', calories: 5.8 },
-    { date: 'S', calories: 2.5 },
-  ]
-
   async function handleAddWeight() {
     const kg = Number(weightInput)
     if (!kg || kg <= 0) return
@@ -73,11 +54,12 @@ export default function Progress() {
     <div className="max-w-[560px] mx-auto px-4 pt-6 pb-10 md:pt-8 md:px-6">
       <h1 className="text-[22px] font-black tracking-tight">{t('progress.title')}</h1>
 
-      <div className="mt-4 rounded-[24px] bg-white border border-[var(--line)] p-4 shadow-sm">
+      <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] p-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-extrabold">Weight Weight</h2>
-          <span className="text-sm font-black">{latestWeight}kg</span>
+          <h2 className="text-sm font-extrabold">{t('progress.weight')}</h2>
+          <span className="text-sm font-black">{latestWeight} {t('common.kg')}</span>
         </div>
+        {weightEntries.length === 0 && <p className="text-sm text-ink-soft mt-3">{t('progress.noWeightData')}</p>}
         <div className="h-[140px] mt-3 -mx-2">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={weightData}>
@@ -88,9 +70,9 @@ export default function Progress() {
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" stroke="#B8AEA2" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis stroke="#B8AEA2" fontSize={11} tickLine={false} axisLine={false} width={32} domain={[82, 83]} />
-              <Tooltip contentStyle={{ background: 'white', border: '1px solid #F0E6D8', borderRadius: 12 }} />
-              <Area type="monotone" dataKey="kg" stroke="#FF6B2D" strokeWidth={2} fill="url(#weightGrad)" dot={{ r: 3, fill: '#FF6B2D', stroke: 'white', strokeWidth: 2 }} />
+              <YAxis stroke="#B8AEA2" fontSize={11} tickLine={false} axisLine={false} width={32} domain={['auto', 'auto']} />
+              <Tooltip contentStyle={{ background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 12 }} />
+              <Area type="monotone" name={t('common.kg')} dataKey="kg" stroke="#FF6B2D" strokeWidth={2} fill="url(#weightGrad)" dot={{ r: 3, fill: '#FF6B2D', stroke: 'white', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -100,24 +82,24 @@ export default function Progress() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-[24px] bg-white border border-[var(--line)] p-4 shadow-sm">
+      <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] p-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-extrabold">Activity</h2>
-          <span className="text-xs font-bold text-ink-soft">Last 7 days</span>
+          <h2 className="text-sm font-extrabold">{t('dashboard.recentActivity')}</h2>
+          <span className="text-xs font-bold text-ink-soft">{t('progress.weeklyActivity')}</span>
         </div>
         <div className="h-[160px] mt-4">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={displayActivityData}>
+            <BarChart data={activityData}>
               <XAxis dataKey="date" stroke="#B8AEA2" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis stroke="#B8AEA2" fontSize={11} tickLine={false} axisLine={false} width={16} domain={[0, 7]} />
-              <Tooltip contentStyle={{ background: 'white', border: '1px solid #F0E6D8', borderRadius: 12 }} />
-              <Bar dataKey="calories" fill="#5B9CF6" radius={[6, 6, 0, 0]} barSize={26} />
+              <YAxis stroke="#B8AEA2" fontSize={11} tickLine={false} axisLine={false} width={16} domain={[0, 'auto']} />
+              <Tooltip contentStyle={{ background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 12 }} />
+              <Bar name={t('common.kcal')} dataKey="calories" fill="#5B9CF6" radius={[6, 6, 0, 0]} barSize={26} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="mt-4 rounded-[24px] bg-white border border-[var(--line)] p-4 shadow-sm">
+      <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] p-4 shadow-sm">
         <h2 className="text-sm font-extrabold">{t('progress.personalRecords')}</h2>
         {personalRecords.length === 0 ? (
           <p className="text-sm text-ink-soft mt-2">{t('progress.noPRs')}</p>
@@ -125,7 +107,7 @@ export default function Progress() {
           <ul className="mt-3 flex flex-col gap-2">
             {personalRecords.map((pr) => (
               <li key={pr.id} className="flex items-center justify-between rounded-xl bg-surface-2 px-3 py-2 text-sm">
-                <span className="font-bold">{pr.exerciseNameEn}</span>
+                <span className="font-bold">{i18n.language === 'ar' ? pr.exerciseNameAr : pr.exerciseNameEn}</span>
                 <span className="text-ink-soft font-semibold">{pr.value}</span>
               </li>
             ))}

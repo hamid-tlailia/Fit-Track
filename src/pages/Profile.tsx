@@ -1,7 +1,8 @@
-import { Camera, Crown, Ruler, Scale, Calendar, Target, Activity, Mail, Sparkles, ShieldCheck } from 'lucide-react'
+import { Camera, Crown, Ruler, Scale, Calendar, Target, Activity, Mail, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { activityLevels } from '@/lib/calculations'
@@ -78,7 +79,7 @@ export default function Profile() {
     } catch { setAvatarError(true) }
   }
 
-  const tierLabel = tier === 'pro' ? 'PRO • ÉLITE' : tier === 'premium' ? 'PREMIUM' : 'FREE'
+  const tierLabel = t(`subscription.plans.${tier}.name`)
   const tierColor = tier === 'pro' ? 'from-amber-400 to-[#FF6B2D]' : tier === 'premium' ? 'from-[#FF6B2D] to-[#FF8C42]' : 'from-gray-400 to-gray-500'
 
   return (
@@ -86,12 +87,13 @@ export default function Profile() {
       {/* Luxurious hero */}
       <div className=" -mx-4 md:-mx-6 relative overflow-hidden bg-gradient-to-br from-[#1A1816] via-[#2A211C] to-[#FF6B2D] pt-8 pb-16 px-4 md:px-6">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.08),_transparent_60%)]" />
-        <div className="absolute -top-16 -end-16 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -top-16 -end-16 h-64 w-64 rounded-full bg-surface/5 blur-3xl" />
         <div className="absolute -bottom-12 -start-12 h-48 w-48 rounded-full bg-[#FF6B2D]/20 blur-3xl" />
+        <div className="relative"><BackButton /></div>
         <div className="relative flex items-start gap-4">
           <div className="relative">
             <div className="absolute -inset-1 rounded-[22px] bg-gradient-to-br from-amber-300 via-[#FF6B2D] to-amber-500 opacity-70 blur-[1px]" />
-            <div className="relative h-[84px] w-[84px] rounded-[20px] overflow-hidden border-2 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.18)] bg-white">
+            <div className="relative h-[84px] w-[84px] rounded-[20px] overflow-hidden border-2 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.18)] bg-surface">
               {form.avatarUrl ? (
                 <img src={form.avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
@@ -104,7 +106,7 @@ export default function Profile() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               aria-label={t('profile.changePhoto')}
-              className="absolute -bottom-2 -end-2 h-8 w-8 rounded-full bg-white text-ink grid place-items-center shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-[var(--line)] hover:scale-105 transition"
+              className="absolute -bottom-2 -end-2 h-8 w-8 rounded-full bg-surface text-ink grid place-items-center shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-[var(--line)] hover:scale-105 transition"
             >
               <Camera size={14} />
             </button>
@@ -119,10 +121,10 @@ export default function Profile() {
             </div>
             <p className="text-sm text-white/70 flex items-center gap-1.5 mt-1 font-medium"><Mail size={12} /> {user.email}</p>
             <div className="flex items-center gap-2 mt-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-2.5 py-1 text-xs font-bold text-white border border-white/15">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface/10 backdrop-blur px-2.5 py-1 text-xs font-bold text-white border border-white/15">
                 <Sparkles size={12} className="text-amber-300" /> {t(`onboarding.goal.${form.goal}`)}
               </span>
-              <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/60"><ShieldCheck size={12} /> Verified</span>
+
             </div>
           </div>
         </div>
@@ -131,16 +133,16 @@ export default function Profile() {
 
       {/* Stats quick glance — luxe */}
       <div className=" -mt-8 relative grid grid-cols-3 gap-2">
-        <StatMini icon={<Scale size={14} />} label={t('profile.weightKg')} value={`${form.weightKg} kg`} />
-        <StatMini icon={<Ruler size={14} />} label={t('profile.heightCm')} value={`${form.heightCm} cm`} />
+        <StatMini icon={<Scale size={14} />} label={t('profile.weightKg')} value={`${form.weightKg} ${t('common.kg')}`} />
+        <StatMini icon={<Ruler size={14} />} label={t('profile.heightCm')} value={`${form.heightCm} ${t('common.cm')}`} />
         <StatMini icon={<Calendar size={14} />} label={t('profile.age')} value={`${form.age}`} />
       </div>
 
       {/* Form card — luxurious */}
-      <div className="mt-4 rounded-[24px] bg-white border border-[var(--line)] shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[var(--line)] bg-gradient-to-r from-[#FFF8EC] to-white flex items-center justify-between">
+      <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[var(--line)] bg-gradient-to-r from-surface-2 to-surface flex items-center justify-between">
           <h2 className="text-sm font-black tracking-tight flex items-center gap-2"><span className="h-6 w-1 rounded-full bg-[#FF6B2D]" /> {t('profile.title')}</h2>
-          <span className="text-[10px] font-black tracking-[0.12em] uppercase text-ink-faint flex items-center gap-1"><Activity size={12} /> ÉLÉGANCE</span>
+          <span className="text-[10px] font-black tracking-[0.12em] uppercase text-ink-faint flex items-center gap-1"><Activity size={12} /> {t('app.tagline')}</span>
         </div>
         <div className="p-5 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
@@ -149,8 +151,8 @@ export default function Profile() {
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="rounded-full border border-[var(--line)] bg-[#FFF8EC] px-4 py-3 text-sm font-semibold outline-none focus:border-[#FF6B2D] focus:bg-white transition"
-              placeholder="Hamid Tlailia"
+              className="rounded-full border border-[var(--line)] bg-surface-2 px-4 py-3 text-sm font-semibold outline-none focus:border-[#FF6B2D] focus:bg-surface transition"
+              placeholder={t('profile.name')}
             />
           </label>
 
@@ -181,7 +183,7 @@ export default function Profile() {
           <Button onClick={() => void handleSave()} loading={saving} className="w-full mt-2 !rounded-full !py-3.5 !text-[14px] bg-gradient-to-r from-[#FF6B2D] to-[#FF8C42] border-0 shadow-[0_8px_24px_rgba(255,107,45,0.28)] hover:shadow-[0_12px_32px_rgba(255,107,45,0.32)]">
             {saved ? `✓ ${t('profile.saved')}` : t('profile.save')}
           </Button>
-          <p className="text-center text-[11px] font-medium text-ink-faint">التغييرات تُحدّث حساب السعرات تلقائياً • ÉLÉGANCE</p>
+          <p className="text-center text-[11px] font-medium text-ink-faint">{t('profile.calorieHint')}</p>
         </div>
       </div>
     </div>
@@ -190,8 +192,8 @@ export default function Profile() {
 
 function StatMini({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white border border-[var(--line)] p-3 text-center shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-      <div className="mx-auto h-7 w-7 rounded-full bg-[#FFF0DD] border border-amber-500/10 grid place-items-center text-amber-600">{icon}</div>
+    <div className="rounded-2xl bg-surface border border-[var(--line)] p-3 text-center shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
+      <div className="mx-auto h-7 w-7 rounded-full bg-surface-2 border border-amber-500/10 grid place-items-center text-amber-600">{icon}</div>
       <p className="text-[10px] font-black tracking-wide uppercase text-ink-faint mt-1">{label}</p>
       <p className="text-sm font-black tracking-tight">{value}</p>
     </div>
@@ -222,7 +224,7 @@ function NumberField({
           const parsed = Number(next)
           if (next.trim() !== '' && Number.isFinite(parsed)) onChange(parsed)
         }}
-        className="rounded-full border border-[var(--line)] bg-[#FFF8EC] px-4 py-3 text-sm font-semibold outline-none focus:border-[#FF6B2D] focus:bg-white transition"
+        className="rounded-full border border-[var(--line)] bg-surface-2 px-4 py-3 text-sm font-semibold outline-none focus:border-[#FF6B2D] focus:bg-surface transition"
       />
     </label>
   )

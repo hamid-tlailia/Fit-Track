@@ -74,7 +74,7 @@ export function AppLayout() {
               {t('app.name')}
               <Crown size={12} className="text-amber-500" />
             </span>
-            <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-ink-faint -mt-0.5 block">ÉLÉGANCE • FITNESS</span>
+            <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-ink-faint -mt-0.5 block">{t('app.tagline')}</span>
           </div>
         </div>
         <div className="h-px bg-gradient-to-r from-transparent via-[var(--line)] to-transparent mx-2 my-2" />
@@ -95,11 +95,11 @@ export function AppLayout() {
           <div className="rounded-[19px] bg-gradient-to-br from-[#1A1816] to-[#2A211C] p-4 relative text-white">
             <div className="flex items-center gap-2">
               <span className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-brand-500 grid place-items-center"><Crown size={12} className="text-white" /></span>
-              <p className="text-sm font-black">FitForge Pro</p>
-              <span className="ms-auto text-[10px] font-black px-2 py-0.5 rounded-full bg-white/15 border border-white/20">ÉLITE</span>
+              <p className="text-sm font-black">{t('app.name')} {t('subscription.plans.pro.name')}</p>
+              <span className="ms-auto text-[10px] font-black px-2 py-0.5 rounded-full bg-surface/15 border border-white/20">{t('app.elite')}</span>
             </div>
             <p className="text-xs opacity-80 mt-2 leading-relaxed font-medium">{t('subscription.subtitle')}</p>
-            <div className="mt-3 h-1 rounded-full bg-white/10 overflow-hidden">
+            <div className="mt-3 h-1 rounded-full bg-surface/10 overflow-hidden">
               <div className="h-full w-[68%] bg-gradient-to-r from-amber-400 to-brand-500 rounded-full" />
             </div>
           </div>
@@ -107,7 +107,7 @@ export function AppLayout() {
       </aside>
 
       {/* Mobile header — luxurious: white with subtle gold bottom border, premium typography */}
-      <header className="md:hidden shrink-0 flex items-center justify-between bg-white/95 backdrop-blur-xl border-b border-[var(--line)] px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] relative">
+      <header className="md:hidden shrink-0 flex items-center justify-between bg-surface/95 backdrop-blur-xl border-b border-[var(--line)] px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] relative">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-[11px] bg-gradient-to-br from-[#FF6B2D] to-[#FF8C42] grid place-items-center text-white shadow-[0_4px_12px_rgba(255,107,45,0.28)] border border-white/20 relative overflow-hidden">
@@ -116,14 +116,14 @@ export function AppLayout() {
           </div>
           <div>
             <span className="font-black tracking-[-0.02em] text-[15px] flex items-center gap-1">{t('app.name')} <Crown size={10} className="text-amber-500" /></span>
-            <span className="text-[9px] font-bold tracking-[0.14em] uppercase text-ink-faint block -mt-0.5">ÉLÉGANCE</span>
+            <span className="text-[9px] font-bold tracking-[0.14em] uppercase text-ink-faint block -mt-0.5">{t('app.tagline')}</span>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           <NavLink
             to="/coach"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-[#FF6B2D] text-white border-[#FF6B2D] shadow-[0_4px_12px_rgba(255,107,45,0.28)]' : 'bg-white border-[var(--line)] text-ink-soft hover:border-amber-500/20'}`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-[#FF6B2D] text-white border-[#FF6B2D] shadow-[0_4px_12px_rgba(255,107,45,0.28)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-amber-500/20'}`
             }
             aria-label={t('nav.coach')}
           >
@@ -132,7 +132,7 @@ export function AppLayout() {
           <NavLink
             to="/settings"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-[#FF6B2D] text-white border-[#FF6B2D] shadow-[0_4px_12px_rgba(255,107,45,0.28)]' : 'bg-white border-[var(--line)] text-ink-soft hover:border-amber-500/20'}`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-[#FF6B2D] text-white border-[#FF6B2D] shadow-[0_4px_12px_rgba(255,107,45,0.28)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-amber-500/20'}`
             }
             aria-label={t('nav.settings')}
           >
@@ -141,7 +141,7 @@ export function AppLayout() {
           <NavLink
             to="/profile"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full border transition-all overflow-hidden ${isActive ? 'border-[#FF6B2D] ring-2 ring-amber-500/20' : 'border-[var(--line)] hover:border-amber-500/20'} bg-white text-ink-soft`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all overflow-hidden ${isActive ? 'border-[#FF6B2D] ring-2 ring-amber-500/20' : 'border-[var(--line)] hover:border-amber-500/20'} bg-surface text-ink-soft`
             }
             aria-label={t('nav.profile')}
           >
@@ -156,7 +156,7 @@ export function AppLayout() {
       </main>
 
       {/* Mobile bottom nav — luxurious floating pill with active orange capsule */}
-      <nav className="md:hidden shrink-0 bg-white border-t border-[var(--line)] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] relative">
+      <nav className="md:hidden shrink-0 pb-[env(safe-area-inset-bottom)] bg-surface border-t border-[var(--line)] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] relative">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent" />
         <div className="grid grid-cols-5 gap-1 px-2 py-2">
           {mainNavItems.map(({ to, icon: Icon, labelKey, end }) => (
@@ -194,8 +194,8 @@ function SideNavLink({ item, secondary }: { item: NavItem; secondary?: boolean }
           isActive
             ? 'bg-[#FF6B2D] text-white shadow-[0_4px_12px_rgba(255,107,45,0.22)]'
             : secondary
-              ? 'text-ink-faint hover:bg-[#FFF0DD] hover:text-ink border border-transparent hover:border-amber-500/10'
-              : 'text-ink-soft hover:bg-[#FFF0DD] hover:text-ink border border-transparent hover:border-amber-500/10'
+              ? 'text-ink-faint hover:bg-surface-2 hover:text-ink border border-transparent hover:border-amber-500/10'
+              : 'text-ink-soft hover:bg-surface-2 hover:text-ink border border-transparent hover:border-amber-500/10'
         }`
       }
     >

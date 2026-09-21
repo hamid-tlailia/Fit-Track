@@ -1,6 +1,8 @@
 {
  "app": {
-  "name": "FitForge"
+  "name": "FitForge",
+  "tagline": "Elegance · Fitness",
+  "elite": "Elite"
  },
  "nav": {
   "dashboard": "Home",
@@ -82,7 +84,15 @@
    "calm": "Progress, not perfection.",
    "neon": "Turn up the intensity.",
    "daylight": "Small steps, sunny days, real progress."
-  }
+  },
+  "activeCalories": "Active calories · estimated",
+  "estimated": "Estimated",
+  "noSensorData": "No synced data",
+  "heartRate": "Average heart rate today",
+  "bpm": "bpm",
+  "distance": "Distance today",
+  "sensorHint": "Requires a connected device with heart-rate data. Reconnect Google Fit to grant the new permissions. No readings are simulated.",
+  "totalEnergy": "Fit total: {{count}} kcal, including resting energy. Active energy above is an estimate."
  },
  "workouts": {
   "title": "Workouts",
@@ -121,7 +131,8 @@
    "subtitle": "Great work. You burned approximately {{calories}} kcal.",
    "backToWorkouts": "Back to workouts",
    "dashboard": "Go to dashboard"
-  }
+  },
+  "saveHint": "Save this session to update your activity and workout streak."
  },
  "nutrition": {
   "title": "Nutrition",
@@ -153,11 +164,14 @@
    "fat": "Fats & Nuts",
    "legume": "Legumes",
    "mixedDish": "Mixed Dishes"
-  }
+  },
+  "remaining": "Calories remaining"
  },
  "notifications": {
   "title": "Notifications",
-  "empty": "No notifications yet. Your daily AI reminders will show up here."
+  "empty": "No notifications yet. Your daily AI reminders will show up here.",
+  "loading": "Loading notifications…",
+  "loadError": "Could not load notifications."
  },
  "progress": {
   "title": "Progress",
@@ -177,7 +191,7 @@
  "subscription": {
   "title": "Fit Track Premium",
   "subtitle": "Unlock AI-powered coaching and advanced tools.",
-  "demoNotice": "Demo mode — no payment is processed yet. This just switches your plan locally.",
+  "demoNotice": "Demo mode — no payment is processed. Your selected plan is saved to your account; trial billing is not enabled yet.",
   "current": "Current plan",
   "choose": "Choose plan",
   "active": "Active",
@@ -216,7 +230,10 @@
      "Data export"
     ]
    }
-  }
+  },
+  "freeTrial": "【1-month free trial】",
+  "activating": "Activating…",
+  "activationError": "Could not activate this plan. Please try again."
  },
  "settings": {
   "title": "Settings",
@@ -266,7 +283,13 @@
   "exportDone": "Downloaded!",
   "deleteAccount": "Delete account",
   "deleteAccountConfirm": "This permanently deletes your account and all your data. This can't be undone. Delete anyway?",
-  "deleteAccountConfirmButton": "Yes, delete my account"
+  "deleteAccountConfirmButton": "Yes, delete my account",
+  "appearance": "Appearance",
+  "colorModes": {
+   "light": "Light",
+   "dark": "Midnight",
+   "system": "Device settings"
+  }
  },
  "profile": {
   "title": "Profile",
@@ -286,7 +309,8 @@
   "changePhoto": "Change profile photo",
   "avatarError": "Couldn't read that image. Try a different photo.",
   "save": "Save changes",
-  "saved": "Saved!"
+  "saved": "Saved!",
+  "calorieHint": "Changes automatically update your calorie targets."
  },
  "formCheck": {
   "title": "AI Form Check",
@@ -329,7 +353,14 @@
    "ai_not_configured": "The AI coach isn't set up yet — the app owner needs to add a free Gemini API key.",
    "ai_unavailable": "The AI coach is temporarily unavailable. Try again in a moment.",
    "rate_limited": "You've sent a lot of messages — take a short break and try again soon.",
-   "unknown": "Something went wrong sending that message."
+   "unknown": "Something went wrong sending that message.",
+   "load_failed": "Could not load your conversations. Please try again.",
+   "invalid_response": "The server returned an invalid response. Please try again.",
+   "ai_quota_exceeded": "The AI provider quota is exhausted. Please try later or ask the app owner to check the project quota.",
+   "ai_credentials_invalid": "The AI provider rejected the server credentials or permissions. The app owner needs to check the Gemini configuration.",
+   "ai_model_unavailable": "The configured AI model is unavailable for this project. The app owner needs to check GEMINI_MODEL.",
+   "ai_request_blocked": "The AI service could not answer this request. Try rephrasing your fitness or nutrition question.",
+   "ai_timeout": "The AI service took too long to respond. Please try again."
   },
   "quickActionsTitle": "Quick actions",
   "quickActionHint": "Try a quick action"
@@ -351,7 +382,12 @@
    "ai_not_configured": "This feature isn't set up yet — the app owner needs to add a free Gemini API key.",
    "ai_unavailable": "The AI service is temporarily unavailable. Try again in a moment.",
    "rate_limited": "You've generated a lot of plans — take a short break and try again soon.",
-   "unknown": "Something went wrong generating your plan."
+   "unknown": "Something went wrong generating your plan.",
+   "ai_quota_exceeded": "The AI provider quota is exhausted. Please try later or ask the app owner to check the project quota.",
+   "ai_credentials_invalid": "The AI provider rejected the server credentials or permissions. The app owner needs to check the Gemini configuration.",
+   "ai_model_unavailable": "The configured AI model is unavailable for this project. The app owner needs to check GEMINI_MODEL.",
+   "ai_request_blocked": "The AI service could not answer this request. Try rephrasing your fitness or nutrition question.",
+   "ai_timeout": "The AI service took too long to respond. Please try again."
   }
  },
  "themes": {
@@ -388,6 +424,15 @@
   "kcal": "kcal",
   "minutes": "min",
   "today": "Today",
-  "streak": "day streak"
+  "streak": "day streak",
+  "loading": "Loading…",
+  "retry": "Try again",
+  "saveError": "Could not save. Please try again.",
+  "liter": "L",
+  "ml": "ml",
+  "grams": "g",
+  "kg": "kg",
+  "cm": "cm",
+  "km": "km"
  }
 }

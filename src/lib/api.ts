@@ -10,6 +10,7 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`/api${path}`, {
+    signal: AbortSignal.timeout(45_000),
     ...options,
     credentials: 'include',
     headers: {
@@ -24,6 +25,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     throw new ApiError(res.status, body?.error ?? `Request failed with status ${res.status}`, body?.code)
   }
+  if (!isJson || body === null) throw new ApiError(502, 'The API returned an invalid response', 'invalid_response')
   return body as T
 }
 

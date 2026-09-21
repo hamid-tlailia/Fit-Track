@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export type ThemeId = 'energy' | 'warrior' | 'calm' | 'neon' | 'daylight'
+export type ColorMode = 'light' | 'dark' | 'system'
 export type VoiceGender = 'male' | 'female'
 export type Units = 'metric' | 'imperial'
 export type SubscriptionTier = 'free' | 'premium' | 'pro'
@@ -15,6 +16,8 @@ export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'ver
  * useTrackerStore, which are hydrated from the API instead of localStorage.
  */
 interface AppState {
+  colorMode: ColorMode
+  setColorMode: (mode: ColorMode) => void
   theme: ThemeId
   voiceGender: VoiceGender
   voiceEnabled: boolean
@@ -30,6 +33,8 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       theme: 'energy',
+      colorMode: 'system',
+      setColorMode: (colorMode) => set({ colorMode }),
       voiceGender: 'female',
       voiceEnabled: true,
       units: 'metric',
