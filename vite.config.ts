@@ -12,7 +12,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon-maskable.svg'],
+      includeAssets: ['favicon.svg', 'favicon-maskable.svg', 'icon-192.png', 'badge-96.png'],
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
@@ -35,7 +35,7 @@ export default defineConfig({
         ],
       },
       injectManifest: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // The AI form-check page lazy-loads TensorFlow.js + pose-detection
         // (~1.5MB) on demand — don't force that download on every install.
         globIgnores: ['**/pose-detection*.js', '**/tfjs*.js', '**/dist-*.js', '**/shared-*.js'],

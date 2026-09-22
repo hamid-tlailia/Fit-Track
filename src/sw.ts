@@ -40,8 +40,14 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body: payload.body,
-      icon: '/favicon.svg',
-      badge: '/favicon.svg',
+      // Android renders the status-bar badge as a monochrome silhouette cut
+      // from the icon's alpha channel, and only accepts a raster bitmap for
+      // it — an SVG (what /favicon.svg is) silently fails to load there and
+      // shows as a blank white square. `icon` also gets a PNG for the same
+      // reason, since SVG support for it is inconsistent across Chrome
+      // versions on Android.
+      icon: '/icon-192.png',
+      badge: '/badge-96.png',
       tag: 'fitforge-daily-reminder',
     }),
   )
