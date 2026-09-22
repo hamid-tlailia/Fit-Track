@@ -8,11 +8,10 @@ export interface ThemeDefinition {
 }
 
 export const themes: ThemeDefinition[] = [
-  { id: 'energy', nameKey: 'themes.energy.name', descriptionKey: 'themes.energy.description', swatch: ['#c8fa54', '#4fc8ff'] },
-  { id: 'warrior', nameKey: 'themes.warrior.name', descriptionKey: 'themes.warrior.description', swatch: ['#8b5cf6', '#fbbf24'] },
-  { id: 'calm', nameKey: 'themes.calm.name', descriptionKey: 'themes.calm.description', swatch: ['#10b981', '#60a5fa'] },
-  { id: 'neon', nameKey: 'themes.neon.name', descriptionKey: 'themes.neon.description', swatch: ['#d21fff', '#39ffd6'] },
-  { id: 'daylight', nameKey: 'themes.daylight.name', descriptionKey: 'themes.daylight.description', swatch: ['#f97316', '#0284c7'] },
+  { id: 'energy', nameKey: 'themes.energy.name', descriptionKey: 'themes.energy.description', swatch: ['#FF6B2D', '#4A90E2'] },
+  { id: 'warrior', nameKey: 'themes.warrior.name', descriptionKey: 'themes.warrior.description', swatch: ['#D97706', '#7C3AED'] },
+  { id: 'calm', nameKey: 'themes.calm.name', descriptionKey: 'themes.calm.description', swatch: ['#059669', '#06B6D4'] },
+  { id: 'neon', nameKey: 'themes.neon.name', descriptionKey: 'themes.neon.description', swatch: ['#E8457A', '#06D6A0'] },
 ]
 
 export function applyTheme(theme: ThemeId) {

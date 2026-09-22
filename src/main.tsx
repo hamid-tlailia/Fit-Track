@@ -21,7 +21,20 @@ syncAppearance()
 systemDark.addEventListener('change', syncAppearance)
 useAppStore.subscribe(syncAppearance)
 
-if (import.meta.env.PROD) registerSW({ immediate: true })
+if (import.meta.env.PROD) {
+  registerSW({ immediate: true })
+  // The service worker skips waiting and claims clients as soon as a new
+  // version installs (see sw.ts), but that alone doesn't refresh a tab
+  // that's already open — it keeps running the JS/CSS it already loaded
+  // until something reloads it, so a session can be left showing a stale
+  // build indefinitely. Reload once the new worker actually takes control.
+  let reloadedForUpdate = false
+  navigator.serviceWorker?.addEventListener('controllerchange', () => {
+    if (reloadedForUpdate) return
+    reloadedForUpdate = true
+    window.location.reload()
+  })
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

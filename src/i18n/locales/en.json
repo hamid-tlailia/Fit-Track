@@ -406,23 +406,19 @@
  "themes": {
   "energy": {
    "name": "Energy",
-   "description": "Electric lime & cyan for high-intensity drive"
+   "description": "Warm sunny orange & blue, the classic FitForge look"
   },
   "warrior": {
    "name": "Warrior",
-   "description": "Deep purple & gold, built for strength days"
+   "description": "Amber & violet, built for strength days"
   },
   "calm": {
    "name": "Calm",
-   "description": "Teal & soft blue for recovery and mobility"
+   "description": "Emerald & cyan for recovery and mobility"
   },
   "neon": {
    "name": "Neon",
-   "description": "Electric pink & cyan gym vibes"
-  },
-  "daylight": {
-   "name": "Daylight",
-   "description": "Warm sunny orange on a light background for daytime use"
+   "description": "Pink & mint gym vibes"
   }
  },
  "common": {

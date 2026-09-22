@@ -92,7 +92,7 @@ async function discoverAvailableModels(apiKey: string): Promise<string[] | null>
       })
     if (usable.length === 0) return null
     // Order usable by our preference list first, then any other flash models
-    const preferredSet = new Set(PREFERRED_MODELS)
+    const preferredSet = new Set<string>(PREFERRED_MODELS)
     const preferredAvailable = PREFERRED_MODELS.filter((p) => usable.includes(p))
     const otherFlash = usable.filter((u) => !preferredSet.has(u) && (u.includes('flash') || u.includes('pro'))).sort()
     const remaining = usable.filter((u) => !preferredSet.has(u) && !otherFlash.includes(u))

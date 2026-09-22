@@ -85,10 +85,6 @@
   --accent: #06D6A0;
   --bg: #FFF5F9;
 }
-:root[data-theme="daylight"] {
-  /* same as default — already daylight */
-}
-
 html { color-scheme: light; }
 
 html[dir="rtl"] body { font-family: "Cairo", system-ui, sans-serif; }
