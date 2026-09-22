@@ -1,4 +1,4 @@
-import { Download, RefreshCw, Sparkles } from 'lucide-react'
+import { Download, RefreshCw, Sparkles, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -21,6 +21,11 @@ interface AiPlanCardProps {
 }
 
 export function AiPlanCard({ type }: AiPlanCardProps) {
+  const { i18n } = useTranslation()
+  return <PlanCard key={`${type}-${i18n.language}`} type={type} />
+}
+
+function PlanCard({ type }: AiPlanCardProps) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language === 'ar' ? 'ar' : 'en'
   const [plan, setPlan] = useState<Plan | null | undefined>(undefined)
@@ -30,7 +35,7 @@ export function AiPlanCard({ type }: AiPlanCardProps) {
   useEffect(() => {
     let cancelled = false
     api
-      .get<{ plan: Plan | null }>(`/ai/plans?type=${type}`)
+      .get<{ plan: Plan | null }>(`/ai/plans?type=${type}&language=${lang}`)
       .then((data) => {
         if (!cancelled) setPlan(data.plan)
       })
@@ -40,7 +45,7 @@ export function AiPlanCard({ type }: AiPlanCardProps) {
     return () => {
       cancelled = true
     }
-  }, [type])
+  }, [type, lang])
 
   async function handleGenerate() {
     setGenerating(true)
@@ -79,7 +84,7 @@ export function AiPlanCard({ type }: AiPlanCardProps) {
 
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
-        {plan === undefined ? null : plan === null ? (
+        {plan === undefined ? <p role="status" className="mt-4 flex gap-2 text-sm text-ink-soft"><LoaderCircle size={16} className="animate-spin" />{t('common.loading')}</p> : plan === null ? (
           <div className="mt-4">
             <p className="text-sm text-ink-soft">{t('aiPlans.empty')}</p>
             <Button className="mt-3" onClick={() => void handleGenerate()} loading={generating}>
@@ -91,12 +96,18 @@ export function AiPlanCard({ type }: AiPlanCardProps) {
             <p className="text-[11px] text-ink-soft mb-3">
               {t('aiPlans.generatedOn', { date: new Date(plan.createdAt).toLocaleDateString(lang === 'ar' ? 'ar' : 'en-US') })}
             </p>
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={handleDownload}>
+            <div className="flex items-center gap-2">
+              <Button className="flex-1 min-w-0" onClick={handleDownload}>
                 <Download size={15} /> {t('aiPlans.downloadPdf')}
               </Button>
-              <Button variant="secondary" onClick={() => void handleGenerate()} loading={generating}>
-                <RefreshCw size={15} />
+              <Button
+                aria-label={t('aiPlans.regenerate')}
+                variant="secondary"
+                className="h-10 w-10 !p-0 shrink-0 rounded-xl grid place-items-center"
+                onClick={() => void handleGenerate()}
+                loading={generating}
+              >
+                <RefreshCw size={16} />
               </Button>
             </div>
           </div>

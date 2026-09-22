@@ -1,4 +1,4 @@
-import { Bell, BellOff } from 'lucide-react'
+import { Bell, BellOff, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -18,17 +18,23 @@ export default function Notifications() {
   const { t, i18n } = useTranslation()
   const [notifications, setNotifications] = useState<Notification[] | null>(null)
 
+  const [error, setError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+
   useEffect(() => {
+    let cancelled = false
     api
       .get<{ notifications: Notification[] }>('/push?action=list')
       .then((data) => {
+        if (cancelled) return
         setNotifications(data.notifications)
         if (data.notifications.some((n) => !n.read)) {
-          void api.post('/push?action=mark-read')
+          void api.post('/push?action=mark-read').catch(() => undefined)
         }
       })
-      .catch(() => setNotifications([]))
-  }, [])
+      .catch(() => { if (!cancelled) setError(true) })
+    return () => { cancelled = true }
+  }, [attempt])
 
   const locale = i18n.language === 'ar' ? 'ar' : 'en-US'
 
@@ -39,7 +45,17 @@ export default function Notifications() {
         <Bell size={22} className="text-brand-400" /> {t('notifications.title')}
       </h1>
 
-      {notifications === null ? null : notifications.length === 0 ? (
+      {error ? (
+        <div role="alert" className="mt-8 text-center text-sm text-ink-soft">
+          <p>{t('notifications.loadError')}</p>
+          <button onClick={() => { setError(false); setNotifications(null); setAttempt((n) => n + 1) }} className="mt-3 rounded-full bg-brand-500 text-white px-5 py-2">{t('common.retry')}</button>
+        </div>
+      ) : notifications === null ? (
+        <div role="status" className="mt-10 flex flex-col items-center gap-3 text-ink-soft">
+          <LoaderCircle size={28} className="animate-spin text-brand-500" />
+          <p className="text-sm">{t('notifications.loading')}</p>
+        </div>
+      ) : notifications.length === 0 ? (
         <div className="mt-10 flex flex-col items-center gap-3 text-center text-ink-soft">
           <BellOff size={32} />
           <p className="text-sm max-w-xs">{t('notifications.empty')}</p>

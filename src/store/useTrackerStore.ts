@@ -142,6 +142,8 @@ export const useTrackerStore = create<TrackerState>()((set, get) => ({
     const dates = new Set(get().completedWorkouts.map((w) => dateKeyOf(w.dateISO)))
     let streak = 0
     const cursor = new Date()
+    // Yesterday's streak remains valid until the end of today.
+    if (!dates.has(dateKeyOf(cursor))) cursor.setDate(cursor.getDate() - 1)
     for (;;) {
       const key = dateKeyOf(cursor)
       if (!dates.has(key)) break

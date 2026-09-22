@@ -2,16 +2,16 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 import { getUserFromRequest } from '../_lib/auth.js'
 import { ensureSchema, sql } from '../_lib/db.js'
+import { callGemini, GeminiError } from '../_lib/gemini.js'
 import { checkRateLimit } from '../_lib/rateLimit.js'
 import type { UserRow } from '../_lib/types.js'
 
 const HISTORY_LIMIT = 20
-const GEMINI_MODEL = 'gemini-3.6-flash'
 const TITLE_MAX_LENGTH = 60
 
 function buildSystemPrompt(user: UserRow): string {
   return `You are the in-app AI fitness coach for FitForge, a bilingual (Arabic/English) fitness tracking app.
-Always reply in the same language the user writes in (Arabic or English) — match their language exactly.
+Respect the app language instruction supplied below unless the user explicitly requests a different language.
 The user's profile: goal=${user.goal}, gender=${user.gender}, weight=${user.weight_kg}kg, height=${user.height_cm}cm, age=${user.age}, activity level=${user.activity_level}.
 Give concise, practical, encouraging fitness and nutrition guidance tailored to this profile.
 You are not a medical professional. For injury, pain, or any medical condition, tell the user to consult a doctor or qualified professional instead of diagnosing or prescribing treatment.
@@ -19,24 +19,16 @@ Keep replies focused and conversational, generally under 150 words unless the us
 Format with plain markdown when it helps (short paragraphs, "- " bullet lists, **bold** for key terms) — the app renders it.
 
 You know FitForge's real structure — when a user asks how to do something in the app, describe these exact screens and flows, never invent a feature, tab, or field that isn't listed here:
-- Home: today's activity (calories/water/streak, plus real step count if Google Fit is connected), a suggested workout, weight trend and calorie-goal progress.
+- Home: today's activity (calories/water/streak, plus real step count if Google Fit is connected), estimated active calories, average heart rate and distance when a connected device supplies readings, and a suggested workout.
 - Workouts: a library of pre-built programs, filterable by category (Strength, HIIT, Cardio, Mobility) and level. Each workout has a fixed exercise list — there's no custom/manual workout builder for these. Opening one shows its exercises; tapping "Start workout" launches a guided player with a set/rep timer and rest cues. Finishing it automatically logs the duration, calories, and streak — nothing is entered by hand. This page also has an "AI Training Plan" card (Pro) that generates a full personalized weekly program and can be downloaded as a PDF.
 - Nutrition: log food under a meal (Breakfast/Lunch/Dinner/Snack) by picking an item from the built-in food database (grouped by category: protein, carbs, fruit, vegetable, dairy, fat, legumes, mixed dishes) and entering grams. Also has a one-tap "add water" button and an "AI Nutrition Plan" card (Pro) that generates a personalized 7-day meal plan, downloadable as a PDF.
 - Progress: a weight-log chart (manual entries), a 7-day calories-burned chart from completed workouts, and personal records (exercise name + value, e.g. "Bench press: 80kg x 5").
 - AI Coach: this chat (Premium/Pro only).
 - AI Form Check: camera-based rep counting and basic form feedback for squats and push-ups, using on-device pose detection (Premium/Pro only, beta, not a substitute for a real coach).
 - Premium: shows the Free/Premium/Pro plans and their features.
-- Settings: language, one of 4 motivational workout themes, voice-coach on/off and voice gender, metric/imperial units, a Google Fit connection for real step counts (Pro), data export (Pro), account deletion.
+- Settings: language, light/dark/system appearance, a motivational workout color theme, voice-coach on/off and voice gender, metric/imperial units, a Google Fit connection for real step counts (Pro), data export (Pro), account deletion.
 - Profile: edit weight, height, age, goal, and activity level (used to calculate calorie/macro targets).
 AI-generated nutrition/training plans and Google Fit are written entirely in the language the plan was generated in / the user's chosen app language, in the same style as the rest of the app.`
-}
-
-interface GeminiResponse {
-  candidates?: {
-    content?: { parts?: { text?: string }[] }
-    finishReason?: string
-  }[]
-  promptFeedback?: { blockReason?: string }
 }
 
 interface ConversationRow {
@@ -67,6 +59,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = req.query.action
 
   if (action === 'conversations' && req.method === 'GET') {
+    // Repair legacy placeholders using the first saved user message.
+    await sql`
+      UPDATE conversations c SET title = LEFT((
+        SELECT content FROM chat_messages m WHERE m.conversation_id = c.id AND m.role = 'user'
+        ORDER BY m.created_at ASC LIMIT 1
+      ), 60)
+      WHERE c.user_id = ${user.id} AND c.title = 'New chat'
+        AND EXISTS (SELECT 1 FROM chat_messages m WHERE m.conversation_id = c.id AND m.role = 'user')
+    `
     const rows = (await sql`
       SELECT id, title, updated_at AS "updatedAt" FROM conversations
       WHERE user_id = ${user.id} ORDER BY updated_at DESC LIMIT 50
@@ -138,14 +139,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { message, conversationId: requestedConversationId } = req.body ?? {}
-  if (typeof message !== 'string' || !message.trim()) {
+  if (typeof message !== 'string' || !message.trim() || message.length > 8000) {
     return res.status(400).json({ error: 'message is required' })
   }
 
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim()
   if (!apiKey) {
     return res.status(503).json({
-      error: 'The AI coach is not configured yet — a GEMINI_API_KEY is missing from this deployment.',
+      error: 'The AI coach is not configured yet — set GEMINI_API_KEY on the server.',
       code: 'ai_not_configured',
     })
   }
@@ -158,6 +159,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: 'Conversation not found' })
     }
     conversationId = requestedConversationId
+    // Auto-title "New chat" conversations on first user message
+    const existingTitleRows = (await sql`SELECT title FROM conversations WHERE id = ${conversationId}`) as { title: string }[]
+    const currentTitle = existingTitleRows[0]?.title
+    const historyCount = (await sql`SELECT COUNT(*) as count FROM chat_messages WHERE conversation_id = ${conversationId}`) as { count: string }[]
+    const msgCount = Number(historyCount[0]?.count || 0)
+    if (currentTitle === 'New chat' && msgCount === 0) {
+      const newTitle = titleFromMessage(trimmedMessage)
+      await sql`UPDATE conversations SET title = ${newTitle} WHERE id = ${conversationId}`
+    }
   } else {
     const created = await sql`
       INSERT INTO conversations (user_id, title) VALUES (${user.id}, ${titleFromMessage(trimmedMessage)}) RETURNING id
@@ -167,48 +177,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const historyRows = (await sql`
     SELECT role, content FROM chat_messages
-    WHERE conversation_id = ${conversationId} ORDER BY created_at ASC LIMIT ${HISTORY_LIMIT}
+    WHERE conversation_id = ${conversationId} ORDER BY created_at DESC LIMIT ${HISTORY_LIMIT}
   `) as { role: string; content: string }[]
 
-  let data: GeminiResponse
+  let replyText: string
   try {
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: buildSystemPrompt(user) }] },
-          contents: [
-            ...historyRows.map((row) => ({
-              role: row.role === 'assistant' ? 'model' : 'user',
-              parts: [{ text: row.content }],
-            })),
-            { role: 'user', parts: [{ text: trimmedMessage }] },
-          ],
-        }),
-      },
-    )
-    if (!geminiRes.ok) {
-      console.error('Gemini API error', geminiRes.status, await geminiRes.text())
-      return res.status(502).json({ error: 'The AI coach is temporarily unavailable', code: 'ai_unavailable' })
-    }
-    data = (await geminiRes.json()) as GeminiResponse
+    const language = req.body?.language === 'ar' ? 'Arabic' : 'English'
+    replyText = await callGemini(`${buildSystemPrompt(user)}\nThe current app language is ${language}. Use it unless the user explicitly requests another language.`, trimmedMessage, historyRows.reverse())
   } catch (error) {
-    console.error('Gemini request failed', error)
-    return res.status(502).json({ error: 'The AI coach is temporarily unavailable', code: 'ai_unavailable' })
+    const code = error instanceof GeminiError ? `ai_${error.code}` : 'ai_unavailable'
+    return res.status(code === 'ai_not_configured' ? 503 : 502).json({ error: 'The AI coach could not respond', code })
   }
-
-  if (data.promptFeedback?.blockReason) {
-    return res.status(200).json({
-      conversationId,
-      reply: { role: 'assistant', content: "I can't help with that particular request — let's talk fitness or nutrition instead." },
-    })
-  }
-
-  const replyText =
-    data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ||
-    "Sorry, I couldn't come up with a response just now — try again?"
 
   await sql`INSERT INTO chat_messages (user_id, conversation_id, role, content) VALUES (${user.id}, ${conversationId}, 'user', ${trimmedMessage})`
   const savedRows = await sql`

@@ -1,4 +1,5 @@
 import {
+  Bell,
   Dumbbell,
   Home,
   LineChart,
@@ -7,15 +8,18 @@ import {
   Settings,
   Sparkles,
   User,
+  Crown,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 
 interface NavItem {
   to: string
-  icon: ComponentType<{ size?: number; strokeWidth?: number }>
+  icon: ComponentType<{ size?: number; strokeWidth?: number; className?: string }>
   labelKey: string
   end?: boolean
 }
@@ -37,20 +41,14 @@ const secondaryNavItems: NavItem[] = [
 export function AppLayout() {
   const { t } = useTranslation()
   const shellRef = useRef<HTMLDivElement>(null)
+  const { pathname } = useLocation()
+  const fillHeight = pathname.startsWith('/coach')
 
   useEffect(() => {
     document.body.classList.add('app-shell-locked')
-
-    // On some mobile browsers (seen on MIUI/Xiaomi's keyboard in particular),
-    // opening the virtual keyboard doesn't resize `100dvh` at all — instead
-    // it *pans* the visual viewport independently of the layout viewport,
-    // which `overflow: hidden` can't stop since nothing was ever asked to
-    // scroll. The only reliable fix is to track the real visible area via
-    // the VisualViewport API and pin this shell to it directly.
     const shell = shellRef.current
     const vv = window.visualViewport
     if (!shell || !vv) return () => document.body.classList.remove('app-shell-locked')
-
     const sync = () => {
       shell.style.height = `${vv.height}px`
       shell.style.transform = `translateY(${vv.offsetTop}px)`
@@ -65,95 +63,145 @@ export function AppLayout() {
     }
   }, [])
 
+  // Pull-to-refresh handler: reloads the page (and notifies listeners for soft refresh)
+  const handleRefresh = useCallback(async () => {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(20)
+      } catch {}
+    }
+    window.dispatchEvent(new CustomEvent('fitforge:refresh'))
+    await new Promise((r) => setTimeout(r, 500))
+    window.location.reload()
+  }, [])
+
   return (
     <div ref={shellRef} className="fixed inset-0 h-dvh overflow-hidden bg-bg text-ink flex flex-col md:flex-row">
-      <aside className="hidden md:flex md:w-64 md:flex-col md:border-e md:border-surface-2 md:bg-surface md:p-4 md:gap-1">
-        <div className="flex items-center gap-2 px-2 py-4">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
-            <Dumbbell size={18} strokeWidth={2.5} />
+      {/* Desktop sidebar — luxurious: cream with subtle texture, gold accents */}
+      <aside className="hidden md:flex md:w-[286px] md:shrink-0 md:flex-col md:border-e md:border-[var(--line)] md:bg-surface md:p-4 md:gap-1 relative overflow-hidden">
+        {/* subtle top glow */}
+        <div className="pointer-events-none absolute -top-24 -end-24 h-48 w-48 rounded-full bg-gradient-to-br from-brand-500/10 to-transparent blur-2xl" />
+        <div className="flex items-center gap-3 px-2 py-5 relative">
+          <div className="h-10 w-10 rounded-[14px] bg-gradient-to-br from-brand-500 to-brand-400 grid place-items-center text-white shadow-[var(--glow-brand)] border border-white/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+            <Dumbbell size={18} strokeWidth={2.5} className="relative" />
           </div>
-          <span className="text-lg font-extrabold tracking-tight">{t('app.name')}</span>
+          <div>
+            <span className="text-[19px] font-black tracking-[-0.02em] flex items-center gap-1">
+              {t('app.name')}
+              <Crown size={12} className="text-amber-500" />
+            </span>
+            <span className="text-[10px] font-bold tracking-[0.16em] uppercase text-ink-faint -mt-0.5 block">{t('app.tagline')}</span>
+          </div>
         </div>
-        {mainNavItems.map((item) => (
-          <SideNavLink key={item.labelKey} item={item} />
-        ))}
-        <div className="mt-auto flex flex-col gap-1">
-          {secondaryNavItems.map((item) => (
+        <div className="h-px bg-gradient-to-r from-transparent via-[var(--line)] to-transparent mx-2 my-2" />
+        <nav className="flex flex-col gap-1.5">
+          {mainNavItems.map((item) => (
             <SideNavLink key={item.labelKey} item={item} />
           ))}
+        </nav>
+        <div className="mt-auto flex flex-col gap-1">
+          <div className="h-px bg-gradient-to-r from-transparent via-[var(--line)] to-transparent mx-2 my-3" />
+          {secondaryNavItems.map((item) => (
+            <SideNavLink key={item.labelKey} item={item} secondary />
+          ))}
+        </div>
+        {/* Luxe Pro card */}
+        <div className="mt-4 rounded-[20px] bg-gradient-to-br from-[#1A1816] via-[#2A2420] to-brand-500 p-[1px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+          <div className="rounded-[19px] bg-gradient-to-br from-[#1A1816] to-[#2A211C] p-4 relative text-white">
+            <div className="flex items-center gap-2">
+              <span className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-brand-500 grid place-items-center"><Crown size={12} className="text-white" /></span>
+              <p className="text-sm font-black">{t('app.name')} {t('subscription.plans.pro.name')}</p>
+              <span className="ms-auto text-[10px] font-black px-2 py-0.5 rounded-full bg-surface/15 border border-white/20">{t('app.elite')}</span>
+            </div>
+            <p className="text-xs opacity-80 mt-2 leading-relaxed font-medium">{t('subscription.subtitle')}</p>
+            <div className="mt-3 h-1 rounded-full bg-surface/10 overflow-hidden">
+              <div className="h-full w-[68%] bg-gradient-to-r from-amber-400 to-brand-500 rounded-full" />
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* header/main/nav are plain flex siblings inside a viewport-locked
-          (h-dvh, overflow-hidden) shell, with `main` as the only scrolling
-          region — not `position: fixed`/`sticky` relative to a page that can
-          itself scroll. Virtual keyboards on mobile scroll the document to
-          bring a focused input into view; when there's no document scroll
-          possible in the first place, there's nothing for that to push the
-          header or nav out from under. */}
-      <header className="md:hidden shrink-0 flex items-center justify-between border-b border-surface-2 bg-surface px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-brand-500 to-accent grid place-items-center text-[var(--ink-on-brand)]">
-            <Dumbbell size={14} strokeWidth={2.5} />
+      {/* Mobile header — luxurious: white with subtle gold bottom border, premium typography */}
+      <header className="md:hidden shrink-0 flex items-center justify-between bg-surface/95 backdrop-blur-xl border-b border-[var(--line)] px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] relative">
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-[11px] bg-gradient-to-br from-brand-500 to-brand-400 grid place-items-center text-white shadow-[var(--glow-brand)] border border-white/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/25 to-transparent" />
+            <Dumbbell size={15} strokeWidth={2.5} className="relative" />
           </div>
-          <span className="font-extrabold tracking-tight">{t('app.name')}</span>
+          <div>
+            <span className="font-black tracking-[-0.02em] text-[15px] flex items-center gap-1">{t('app.name')} <Crown size={10} className="text-amber-500" /></span>
+            <span className="text-[9px] font-bold tracking-[0.14em] uppercase text-ink-faint block -mt-0.5">{t('app.tagline')}</span>
+          </div>
         </div>
         <div className="flex items-center gap-1.5">
           <NavLink
             to="/coach"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
-                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
-              }`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-brand-500 text-white border-brand-500 shadow-[var(--glow-brand)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-brand-500/30'}`
             }
             aria-label={t('nav.coach')}
           >
-            <MessageCircle size={18} />
+            <MessageCircle size={16} strokeWidth={2} />
           </NavLink>
           <NavLink
             to="/settings"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
-                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
-              }`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-brand-500 text-white border-brand-500 shadow-[var(--glow-brand)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-brand-500/30'}`
             }
             aria-label={t('nav.settings')}
           >
-            <Settings size={18} />
+            <Settings size={16} strokeWidth={2} />
           </NavLink>
           <NavLink
-            to="/profile"
+            to="/notifications"
             className={({ isActive }) =>
-              `grid h-9 w-9 place-items-center rounded-full transition-colors ${
-                isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2'
-              }`
+              `grid h-9 w-9 place-items-center rounded-full border transition-all ${isActive ? 'bg-brand-500 text-white border-brand-500 shadow-[var(--glow-brand)]' : 'bg-surface border-[var(--line)] text-ink-soft hover:border-brand-500/30'}`
             }
-            aria-label={t('nav.profile')}
+            aria-label={t('nav.notifications')}
           >
-            <User size={18} />
+            <Bell size={16} strokeWidth={2} />
           </NavLink>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto overflow-x-hidden">
-        <Outlet />
+      <main className="flex-1 overflow-hidden bg-bg relative flex flex-col">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-transparent h-32 hidden md:block z-10" />
+        <PullToRefresh
+          fill={fillHeight}
+          className={`flex-1 min-h-0 overflow-x-hidden bg-bg relative ${fillHeight ? 'overflow-hidden' : 'overflow-y-auto'}`}
+          onRefresh={handleRefresh}
+        >
+          <Outlet />
+        </PullToRefresh>
+        <div id="home-fab-root" className="pointer-events-none absolute inset-x-0 bottom-3 md:bottom-6 z-40 flex justify-center" />
       </main>
 
-      <nav className="md:hidden shrink-0 border-t border-surface-2 bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
-        <div className="grid grid-cols-5">
+      {/* Mobile bottom nav — the active theme color stays on the icon while the label remains readable */}
+      <nav className="md:hidden shrink-0 bg-surface border-t border-[var(--line)] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] relative pb-[env(safe-area-inset-bottom)]">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent" />
+        <div className="grid grid-cols-5 gap-0.5 px-1 pt-1.5 pb-1">
           {mainNavItems.map(({ to, icon: Icon, labelKey, end }) => (
             <NavLink
               key={labelKey}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                  isActive ? 'text-brand-400' : 'text-ink-soft'
+                `flex flex-col items-center justify-center gap-1.5 py-1 rounded-xl text-[10px] font-bold leading-none transition-all duration-200 ${
+                  isActive ? 'text-brand-500' : 'text-ink-soft hover:text-ink'
                 }`
               }
             >
-              <Icon size={20} strokeWidth={2.25} />
-              <span>{t(`nav.${labelKey}`)}</span>
+              {({ isActive }) => (
+                <>
+                  <span className={`grid h-7 w-7 place-items-center rounded-lg transition-all ${isActive ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]' : 'text-ink-soft'}`}>
+                    <Icon size={17} strokeWidth={2.2} />
+                  </span>
+                  <span className="tracking-wide text-[10px]">{t(`nav.${labelKey}`)}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>
@@ -162,7 +210,7 @@ export function AppLayout() {
   )
 }
 
-function SideNavLink({ item }: { item: NavItem }) {
+function SideNavLink({ item, secondary }: { item: NavItem; secondary?: boolean }) {
   const { t } = useTranslation()
   const { to, icon: Icon, labelKey, end } = item
   return (
@@ -170,13 +218,17 @@ function SideNavLink({ item }: { item: NavItem }) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-          isActive ? 'bg-brand-500/15 text-brand-400' : 'text-ink-soft hover:bg-surface-2 hover:text-ink'
+        `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-bold transition-all ${
+          isActive
+            ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]'
+            : secondary
+              ? 'text-ink-faint hover:bg-surface-2 hover:text-ink border border-transparent hover:border-amber-500/10'
+              : 'text-ink-soft hover:bg-surface-2 hover:text-ink border border-transparent hover:border-amber-500/10'
         }`
       }
     >
-      <Icon size={19} strokeWidth={2.25} />
-      <span>{t(`nav.${labelKey}`)}</span>
+      <Icon size={18} strokeWidth={2.2} className="transition-transform group-hover:scale-105" />
+      <span className="tracking-tight">{t(`nav.${labelKey}`)}</span>
     </NavLink>
   )
 }

@@ -1,4 +1,4 @@
-import { Activity, Bell, Check, Download, LogOut, Trash2, Volume2 } from 'lucide-react'
+import { Activity, Bell, Check, Download, LogOut, Trash2, Volume2, Watch, Smartphone } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -21,6 +21,8 @@ export default function Settings() {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
+  const colorMode = useAppStore((state) => state.colorMode)
+  const setColorMode = useAppStore((state) => state.setColorMode)
   const theme = useAppStore((state) => state.theme)
   const setTheme = useAppStore((state) => state.setTheme)
   const voiceGender = useAppStore((state) => state.voiceGender)
@@ -182,6 +184,17 @@ export default function Settings() {
       </Card>
 
       <Card className="mt-4">
+        <h2 className="font-bold mb-3">{t('settings.appearance')}</h2>
+        <div className="grid grid-cols-3 gap-2">
+          {(['light', 'dark', 'system'] as const).map((mode) => (
+            <button key={mode} onClick={() => setColorMode(mode)} aria-pressed={colorMode === mode}
+              className={`rounded-xl border px-2 py-3 text-sm font-bold transition ${colorMode === mode ? 'border-brand-500 bg-brand-500/10 text-brand-500' : 'border-line bg-surface-2'}`}>
+              {t(`settings.colorModes.${mode}`)}
+            </button>
+          ))}
+        </div>
+      </Card>
+      <Card className="mt-4">
         <h2 className="font-bold mb-3">{t('settings.theme')}</h2>
         <div className="grid grid-cols-2 gap-3">
           {themes.map((def) => (
@@ -293,6 +306,28 @@ export default function Settings() {
               </button>
             )}
           </div>
+
+          {/* Huawei & Samsung support via Health Connect / Google Fit bridge */}
+          <div className="mt-4 rounded-xl bg-surface-2 border border-[var(--line)] p-3">
+            <p className="text-xs font-black tracking-wide flex items-center gap-1.5 mb-2"><Watch size={14} className="text-brand-500" /> {t('settings.compatibleWatches')}</p>
+            <div className="grid gap-2">
+              <div className="flex gap-2.5 items-start">
+                <div className="h-8 w-8 rounded-lg bg-surface border border-[var(--line)] grid place-items-center shrink-0"><Watch size={14} /></div>
+                <div>
+                  <p className="text-xs font-bold">{t('settings.huaweiWatchTitle')}</p>
+                  <p className="text-[11px] text-ink-soft leading-relaxed">{t('settings.huaweiWatchDesc')}</p>
+                </div>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <div className="h-8 w-8 rounded-lg bg-surface border border-[var(--line)] grid place-items-center shrink-0"><Smartphone size={14} /></div>
+                <div>
+                  <p className="text-xs font-bold">{t('settings.samsungWatchTitle')}</p>
+                  <p className="text-[11px] text-ink-soft leading-relaxed">{t('settings.samsungWatchDesc')}</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-[11px] text-ink-faint mt-2 leading-relaxed">{t('settings.wearablesHint')}</p>
+          </div>
         </PremiumGate>
       </Card>
 
@@ -323,7 +358,7 @@ export default function Settings() {
                 }`}
               >
                 <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-surface transition-all ${
                     remindersOn ? 'start-[22px]' : 'start-1'
                   }`}
                 />
