@@ -252,7 +252,7 @@
   "imperial": "Imperial (lb/ft)",
   "wearables": "Wearables",
   "googleFit": "Google Fit",
-  "fitConnectedStatus": "Connected — showing real step counts on Home",
+  "fitConnectedStatus": "Connected. Not seeing heart rate or distance? Disconnect and reconnect once to grant those newer permissions.",
   "fitNotConnected": "Not connected",
   "connect": "Connect",
   "disconnect": "Disconnect",
