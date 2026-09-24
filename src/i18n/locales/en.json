@@ -258,6 +258,15 @@
   "disconnect": "Disconnect",
   "fitProOnly": "Connecting a real step counter from Google Fit is a Pro feature.",
   "fitConnected": "Google Fit connected!",
+  "fitConnecting": "Connecting…",
+  "fitDisconnecting": "Disconnecting…",
+  "fitChecking": "Checking the connection…",
+  "fitStatus": {
+    "reauth_required": "Access expired — reconnect Google Fit so your numbers can sync again.",
+    "permission_denied": "Some Fit permissions weren't granted. Reconnect and approve every option so steps, calories, heart rate and distance can appear.",
+    "no_data": "Connected, but Google Fit has no readings for today yet.",
+    "unavailable": "Couldn't reach Google Fit just now — the numbers will refresh on the next sync."
+  },
   "fitErrors": {
    "not_configured": "Google Fit isn't set up yet — the app owner needs to add Google OAuth credentials.",
    "denied": "Google Fit connection was cancelled.",

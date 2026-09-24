@@ -60,14 +60,18 @@ export default function Dashboard() {
     return () => { clearInterval(timer); window.removeEventListener('focus', tick) }
   }, [])
 
-  // Google Fit sync: steps + caloriesBurned together — fix sync issue
+  // Google Fit sync: one response carries every metric. A transient failure
+  // must not blank numbers the user already sees — keep the last successful
+  // sync of today and let the next tick retry.
+  const haveFitDataRef = useRef(false)
   useEffect(() => {
     let cancelled = false
     async function fetchFit() {
       try {
         const requestedAt = new Date()
-        const data = await api.get<{ connected: boolean; steps?: number | null; caloriesBurned?: number | null; heartRate?: number | null; distanceMeters?: number | null }>(`/fit?action=steps&tzOffset=${new Date().getTimezoneOffset()}`)
+        const data = await api.get<{ connected: boolean; status?: string; steps?: number | null; caloriesBurned?: number | null; heartRate?: number | null; distanceMeters?: number | null }>(`/fit?action=steps&tzOffset=${new Date().getTimezoneOffset()}`)
         if (cancelled || dateKeyOf(requestedAt) !== todayKey()) return
+        haveFitDataRef.current = true
         setFitDay(dateKeyOf(requestedAt)); setFitTime(requestedAt)
         setFitConnected(!!data.connected)
         setSteps(data.connected ? (data.steps ?? null) : null)
@@ -75,7 +79,7 @@ export default function Dashboard() {
         setDistanceMeters(data.distanceMeters ?? null)
         setFitCalories(data.connected && data.caloriesBurned != null ? data.caloriesBurned : null)
       } catch {
-        if (!cancelled) { setSteps(null); setHeartRate(null); setDistanceMeters(null); setFitCalories(null); setFitConnected(false) }
+        if (!cancelled && !haveFitDataRef.current) { setSteps(null); setHeartRate(null); setDistanceMeters(null); setFitCalories(null); setFitConnected(false) }
       }
     }
     fetchFit()
@@ -194,7 +198,7 @@ export default function Dashboard() {
         <ActivityCircleCard
           label={t('dashboard.waterToday')}
           value={`${(waterMl / 1000).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')}`}
-          suffix={` ${t('common.liter')}`}
+          suffix={t('common.liter')}
           sub={`${waterMl} ${t('common.ml')}`}
           pct={waterPct}
           color="#3B82F6"
@@ -271,6 +275,16 @@ export default function Dashboard() {
   )
 }
 
+// Ring geometry in fixed pixels. The SVG and its wrapper must be exactly the
+// same box: the root font-size is enlarged, so a rem-sized wrapper (6rem =
+// 108px) around a fixed 96px chart pushed the number off-center — and in RTL
+// the smaller chart hugs the inline-start edge, doubling the offset. A single
+// shared box puts the text exactly on the circle's center in both directions.
+const RING_PX = 84
+const RING_OUTER_RADIUS = 41
+const RING_INNER_RADIUS = 31
+const RING_BAR_SIZE = 8
+
 function ActivityCircleCard({
   label,
   value,
@@ -291,15 +305,26 @@ function ActivityCircleCard({
   return (
     <div className="rounded-[20px] bg-surface border border-[var(--line)] p-4 flex flex-col items-center text-center shadow-sm">
       <p className="text-sm font-bold mb-2">{label}</p>
-      <div className="relative h-24 w-24">
-        <RadialBarChart width={96} height={96} innerRadius={36} outerRadius={47} barSize={9} data={[{ value: pct, fill: color }]} startAngle={90} endAngle={-270}>
+      <div data-ring className="relative" style={{ width: RING_PX, height: RING_PX }}>
+        <RadialBarChart
+          width={RING_PX}
+          height={RING_PX}
+          innerRadius={RING_INNER_RADIUS}
+          outerRadius={RING_OUTER_RADIUS}
+          barSize={RING_BAR_SIZE}
+          data={[{ value: pct, fill: color }]}
+          startAngle={90}
+          endAngle={-270}
+        >
           <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
           <RadialBar dataKey="value" cornerRadius={999} background={{ fill: bg }} />
         </RadialBarChart>
-        <div className="absolute inset-0 grid place-items-center">
-          <span className="text-xl font-black">
+        {/* leading-none gives the line box the same height as the font size, so
+            flex centering lands the digits' ink on the circle's exact center. */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span data-ring-value className="whitespace-nowrap font-black leading-none text-[21px]">
             {value}
-            {suffix ?? ''}
+            {suffix && <span className="ms-1 font-bold leading-none text-[12px]">{suffix.trim()}</span>}
           </span>
         </div>
       </div>
