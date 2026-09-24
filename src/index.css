@@ -85,7 +85,7 @@
   --accent: #06D6A0;
   --bg: #FFF5F9;
 }
-html { color-scheme: light; }
+html { color-scheme: light; font-size: 112.5%; }
 
 html[dir="rtl"] body { font-family: "Cairo", system-ui, sans-serif; }
 html, body { height: 100%; }

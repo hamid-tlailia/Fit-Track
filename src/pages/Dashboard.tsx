@@ -221,9 +221,9 @@ export default function Dashboard() {
 
       <div className="mt-3 rounded-2xl border border-line bg-surface p-4">
         <h3 className="font-bold text-sm flex gap-2 items-center"><HeartPulse size={18} className="text-rose-500" />{t('dashboard.healthMetrics')}</h3>
-        <div className="grid grid-cols-2 gap-3 mt-3 text-sm">
-          <div><p className="text-ink-soft text-xs">{t('dashboard.heartRate')}</p><p className="font-bold mt-1">{!hasFitToday || heartRate == null ? '—' : `${Math.round(heartRate)} ${t('dashboard.bpm')}`}</p></div>
-          <div><p className="text-ink-soft text-xs">{t('dashboard.distance')}</p><p className="font-bold mt-1">{!hasFitToday || distanceMeters == null ? '—' : `${(distanceMeters / 1000).toFixed(2)} ${t('common.km')}`}</p></div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div><p className="text-ink-soft text-sm">{t('dashboard.heartRate')}</p><p className="font-bold text-lg mt-1">{!hasFitToday || heartRate == null ? '—' : `${Math.round(heartRate)} ${t('dashboard.bpm')}`}</p></div>
+          <div><p className="text-ink-soft text-sm">{t('dashboard.distance')}</p><p className="font-bold text-lg mt-1">{!hasFitToday || distanceMeters == null ? '—' : `${(distanceMeters / 1000).toFixed(2)} ${t('common.km')}`}</p></div>
         </div>
         {(!hasFitToday || heartRate == null) && <p className="mt-2 text-xs text-ink-soft">{t('dashboard.sensorHint')}</p>}
         {hasFitToday && fitCalories != null && <p className="mt-2 text-xs text-ink-soft">{t('dashboard.totalEnergy', { count: fitCalories })}</p>}
@@ -290,20 +290,20 @@ function ActivityCircleCard({
 }) {
   return (
     <div className="rounded-[20px] bg-surface border border-[var(--line)] p-4 flex flex-col items-center text-center shadow-sm">
-      <p className="text-xs font-bold mb-2">{label}</p>
-      <div className="relative h-[72px] w-[72px]">
-        <RadialBarChart width={72} height={72} innerRadius={28} outerRadius={36} barSize={6} data={[{ value: pct, fill: color }]} startAngle={90} endAngle={-270}>
+      <p className="text-sm font-bold mb-2">{label}</p>
+      <div className="relative h-24 w-24">
+        <RadialBarChart width={96} height={96} innerRadius={36} outerRadius={47} barSize={9} data={[{ value: pct, fill: color }]} startAngle={90} endAngle={-270}>
           <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
           <RadialBar dataKey="value" cornerRadius={999} background={{ fill: bg }} />
         </RadialBarChart>
         <div className="absolute inset-0 grid place-items-center">
-          <span className="text-[15px] font-black">
+          <span className="text-xl font-black">
             {value}
             {suffix ?? ''}
           </span>
         </div>
       </div>
-      <p className="text-[11px] font-bold text-ink-soft mt-1 text-center leading-tight">{sub}</p>
+      <p className="text-xs font-bold text-ink-soft mt-1.5 text-center leading-tight">{sub}</p>
     </div>
   )
 }
