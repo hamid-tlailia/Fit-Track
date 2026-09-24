@@ -7,7 +7,7 @@ import { PremiumGate } from '@/components/PremiumGate'
 import { BackButton } from '@/components/ui/BackButton'
 import { Card } from '@/components/ui/Card'
 import i18n, { type SupportedLanguage, supportedLanguages } from '@/i18n'
-import { api } from '@/lib/api'
+import { ApiError, api } from '@/lib/api'
 import { getCurrentSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
 import { loadVoices, speak } from '@/lib/voice'
 import { applyTheme, themes } from '@/lib/themes'
@@ -44,7 +44,13 @@ export default function Settings() {
     : null
   const redirectReason = redirectStatus ? new URLSearchParams(window.location.search).get('reason') : null
 
-  const [fitConnected, setFitConnected] = useState<boolean | null>(redirectStatus === 'connected' ? true : null)
+  // null = still verifying with the API — shows the checking loader instead of
+  // claiming "not connected" while the request is in flight (e.g. right after
+  // returning from the Google consent screen).
+  const [fitConnected, setFitConnected] = useState<boolean | null>(null)
+  type FitStatus = 'ok' | 'reauth_required' | 'permission_denied' | 'no_data' | 'unavailable'
+  const [fitStatus, setFitStatus] = useState<FitStatus | null>(null)
+  const [fitError, setFitError] = useState<string | null>(null)
   const [fitBusy, setFitBusy] = useState(false)
   const [remindersOn, setRemindersOn] = useState<boolean | null>(() => (isPushSupported() ? null : false))
   const [remindersBusy, setRemindersBusy] = useState(false)
@@ -57,10 +63,22 @@ export default function Settings() {
   })
 
   useEffect(() => {
+    let cancelled = false
     api
-      .get<{ connected: boolean }>('/fit?action=steps')
-      .then((data) => setFitConnected(data.connected))
-      .catch(() => setFitConnected(false))
+      .get<{ connected: boolean; status?: FitStatus }>('/fit?action=steps')
+      .then((data) => {
+        if (cancelled) return
+        setFitConnected(data.connected)
+        setFitStatus(data.status ?? 'ok')
+      })
+      .catch(() => {
+        if (cancelled) return
+        setFitConnected(false)
+        setFitStatus('unavailable')
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -117,15 +135,33 @@ export default function Settings() {
     }
   }
 
-  function handleConnectFit() {
-    window.location.href = '/api/fit?action=authorize'
+  // Connect and disconnect both keep a spinner on the button for the whole
+  // round-trip: the busy flag stays up through the redirect to Google (until
+  // this page unloads) and until the DELETE has actually landed server-side.
+  async function handleConnectFit() {
+    if (fitBusy) return
+    setFitBusy(true)
+    setFitError(null)
+    try {
+      const { url } = await api.get<{ url: string }>('/fit?action=authorize&format=json')
+      window.location.assign(url)
+    } catch (err) {
+      setFitBusy(false)
+      const code = err instanceof ApiError ? err.code : 'unknown'
+      setFitError(t(`settings.fitErrors.${code}`, { defaultValue: t('settings.fitErrors.unknown') }))
+    }
   }
 
   async function handleDisconnectFit() {
+    if (fitBusy) return
     setFitBusy(true)
+    setFitError(null)
     try {
       await api.delete('/fit?action=disconnect')
       setFitConnected(false)
+      setFitStatus('ok')
+    } catch {
+      setFitError(t('settings.fitErrors.unknown'))
     } finally {
       setFitBusy(false)
     }
@@ -271,7 +307,7 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card className="mt-4">
+      <Card className="mt-4" data-fit-card>
         <h2 className="font-bold mb-3">{t('settings.wearables')}</h2>
         {fitMessage && <p className="mb-3 text-sm text-ink-soft">{fitMessage}</p>}
         <PremiumGate requires="pro" descriptionKey="settings.fitProOnly">
@@ -282,30 +318,59 @@ export default function Settings() {
             <div className="flex-1">
               <p className="font-semibold text-sm">{t('settings.googleFit')}</p>
               <p className="text-xs text-ink-soft">
-                {fitConnected ? t('settings.fitConnectedStatus') : t('settings.fitNotConnected')}
+                {fitBusy
+                  ? fitConnected
+                    ? t('settings.fitDisconnecting')
+                    : t('settings.fitConnecting')
+                  : fitConnected === null
+                    ? t('settings.fitChecking')
+                    : fitConnected
+                      ? t('settings.fitConnectedStatus')
+                      : t('settings.fitNotConnected')}
               </p>
             </div>
             {fitConnected ? (
               <button
+                data-fit-action="disconnect"
                 onClick={() => void handleDisconnectFit()}
                 disabled={fitBusy}
-                className="shrink-0 rounded-xl bg-surface-2 px-3.5 py-2 text-sm font-semibold text-ink-soft disabled:opacity-50"
+                aria-busy={fitBusy}
+                className="inline-flex min-w-[104px] shrink-0 items-center justify-center rounded-xl bg-surface-2 px-3.5 py-2 text-sm font-semibold text-ink-soft disabled:opacity-60"
               >
                 {fitBusy ? (
-                  <span className="inline-block h-4 w-4 rounded-full border-2 border-ink/30 border-t-ink animate-spin" />
+                  <span aria-hidden className="inline-block h-4 w-4 rounded-full border-2 border-ink/30 border-t-ink animate-spin" />
                 ) : (
                   t('settings.disconnect')
                 )}
               </button>
+            ) : fitConnected === null ? (
+              <span
+                role="status"
+                aria-label={t('settings.fitChecking')}
+                className="inline-flex min-w-[104px] shrink-0 items-center justify-center rounded-xl bg-surface-2 px-3.5 py-2"
+              >
+                <span aria-hidden className="inline-block h-4 w-4 rounded-full border-2 border-ink/30 border-t-ink animate-spin" />
+              </span>
             ) : (
               <button
-                onClick={handleConnectFit}
-                className="shrink-0 rounded-xl bg-brand-500 px-3.5 py-2 text-sm font-semibold text-[var(--ink-on-brand)]"
+                data-fit-action="connect"
+                onClick={() => void handleConnectFit()}
+                disabled={fitBusy}
+                aria-busy={fitBusy}
+                className="inline-flex min-w-[104px] shrink-0 items-center justify-center rounded-xl bg-brand-500 px-3.5 py-2 text-sm font-semibold text-[var(--ink-on-brand)] disabled:opacity-60"
               >
-                {t('settings.connect')}
+                {fitBusy ? (
+                  <span aria-hidden className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                ) : (
+                  t('settings.connect')
+                )}
               </button>
             )}
           </div>
+          {fitError && <p role="alert" className="mt-2 text-xs font-semibold text-red-400">{fitError}</p>}
+          {!fitBusy && fitStatus && fitStatus !== 'ok' && (
+            <p role="status" className="mt-2 text-xs font-semibold text-amber-600">{t(`settings.fitStatus.${fitStatus}`)}</p>
+          )}
 
           {/* Huawei & Samsung support via Health Connect / Google Fit bridge */}
           <div className="mt-4 rounded-xl bg-surface-2 border border-[var(--line)] p-3">

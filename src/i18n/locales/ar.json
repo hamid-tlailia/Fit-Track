@@ -258,6 +258,15 @@
   "disconnect": "قطع الاتصال",
   "fitProOnly": "ربط عدّاد خطوات حقيقي من Google Fit ميزة برو.",
   "fitConnected": "تم ربط Google Fit!",
+  "fitConnecting": "جارٍ الاتصال…",
+  "fitDisconnecting": "جارٍ قطع الاتصال…",
+  "fitChecking": "جارٍ التحقق من الاتصال…",
+  "fitStatus": {
+    "reauth_required": "انتهت صلاحية الوصول — أعد ربط Google Fit لتظهر الأرقام وتتزامن من جديد.",
+    "permission_denied": "لم تُمنح بعض أذونات Fit. أعد الربط ووافق على كل الخيارات ليظهر الخطوات والسعرات والنبض والمسافة.",
+    "no_data": "متصل، لكن لا توجد قراءات في Google Fit لليوم بعد.",
+    "unavailable": "تعذّر الوصول إلى Google Fit الآن — ستتحدّث الأرقام عند المزامنة القادمة."
+  },
   "fitErrors": {
    "not_configured": "Google Fit غير مُفعّل بعد — يحتاج مالك التطبيق لإضافة بيانات اعتماد Google OAuth.",
    "denied": "تم إلغاء عملية ربط Google Fit.",

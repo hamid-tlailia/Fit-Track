@@ -65,6 +65,14 @@ functions alongside Vite.
   and location permissions. The Google project/API and the connected device
   must actually supply the requested data. Missing readings remain unavailable,
   not synthetic zeroes; optional sensor failures do not disable steps/calories.
+- Google's granular consent lets a user grant only some of the requested Fit
+  scopes, and some accounts have no default data source for a type — so every
+  metric is fetched and failed independently (steps fall back to the merged
+  `estimated_steps` source) and one broken reading never blanks the others.
+  Settings explains when a reconnect with all permissions is needed. A revoked
+  refresh token (`invalid_grant`) clears the stored connection and asks the
+  user to reconnect instead of showing a connected-but-dead state, and the
+  connect/disconnect buttons show a loader for the whole round-trip.
 
 ## Activity and appearance
 
