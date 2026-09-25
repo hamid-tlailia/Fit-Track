@@ -132,7 +132,7 @@ export function AppLayout() {
             <Dumbbell size={15} strokeWidth={2.5} className="relative" />
           </div>
           <div>
-            <span className="font-black tracking-[-0.02em] text-[15px] flex items-center gap-1">{t('app.name')} <Crown size={10} className="text-amber-500" /></span>
+            <span className="font-black tracking-[-0.02em] text-[18px] flex items-center gap-1">{t('app.name')} <Crown size={12} className="text-amber-500" /></span>
             <span className="text-[9px] font-bold tracking-[0.14em] uppercase text-ink-faint block -mt-0.5">{t('app.tagline')}</span>
           </div>
         </div>
@@ -189,17 +189,17 @@ export function AppLayout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-1.5 py-1 rounded-xl text-[10px] font-bold leading-none transition-all duration-200 ${
+                `flex flex-col items-center justify-center gap-1.5 py-1 rounded-xl text-[11px] font-bold leading-none transition-all duration-200 ${
                   isActive ? 'text-brand-500' : 'text-ink-soft hover:text-ink'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <span className={`grid h-7 w-7 place-items-center rounded-lg transition-all ${isActive ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]' : 'text-ink-soft'}`}>
-                    <Icon size={17} strokeWidth={2.2} />
+                  <span className={`grid h-8 w-8 place-items-center rounded-lg transition-all ${isActive ? 'bg-brand-500 text-white shadow-[var(--glow-brand)]' : 'text-ink-soft'}`}>
+                    <Icon size={20} strokeWidth={2.2} />
                   </span>
-                  <span className="tracking-wide text-[10px]">{t(`nav.${labelKey}`)}</span>
+                  <span className="tracking-wide text-[11px]">{t(`nav.${labelKey}`)}</span>
                 </>
               )}
             </NavLink>

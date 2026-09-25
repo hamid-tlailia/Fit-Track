@@ -149,8 +149,8 @@ export default function Profile() {
       </div>
 
       {/* Form card — luxurious */}
-      <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] shadow-[0_8px_32px_rgba(0,0,0,0.06)] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[var(--line)] bg-gradient-to-r from-surface-2 to-surface flex items-center justify-between">
+      <div className="mt-4 rounded-[24px] bg-surface border border-[var(--line)] shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+        <div className="px-5 py-4 border-b border-[var(--line)] bg-gradient-to-r from-surface-2 to-surface flex items-center justify-between rounded-t-[24px]">
           <h2 className="text-sm font-black tracking-tight flex items-center gap-2"><span className="h-6 w-1 rounded-full bg-[#FF6B2D]" /> {t('profile.title')}</h2>
           <span className="text-[10px] font-black tracking-[0.12em] uppercase text-ink-faint flex items-center gap-1"><Activity size={12} /> {t('app.tagline')}</span>
         </div>
